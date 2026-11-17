@@ -47,3 +47,9 @@ Choices made while building v0.1 without stopping to ask. Newest at the bottom o
 - **Arpeggio position for B7 / C7 drills**: the brief didn't give one; I used frets 7 and 8 so they sit near the Kid Charlemagne lines.
 - **`src/lib/lab.test.ts` lists every Lab link the app ships** (116 across all blocks, weeks and lessons). Each was checked in Chromium against a deliberately different saved Lab state: right mode and every control value.
 - **Test files are excluded from the app typecheck** (`tsconfig.app.json`); Vitest type-strips them when it runs them.
+
+## Polish and deploy
+- **Checked at 375 px and 320 px** on every screen: no horizontal page scroll; wide content (concept chips, tables, heatmap) scrolls inside its own box. Buttons and tabs on Today are at least 40×40 px (most are 48–56 px tall).
+- **Offline verified in Chromium**: after one online visit, every screen and Fretboard Lab (with presets) load with the network off; lesson videos show "needs a connection" with Open on YouTube and Retry.
+- **Export → reset → import verified** to restore the app data and the Lab's settings byte for byte.
+- **`vercel.json` / `netlify.toml`** set `no-cache` on `sw.js`, `index.html` and `fretboard-lab.html` and long-term caching on hashed `assets/`, so updates reach the phone quickly.
