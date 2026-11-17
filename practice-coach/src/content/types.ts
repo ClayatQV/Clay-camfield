@@ -53,7 +53,11 @@ export type SessionPart = {
   labLinks?: LabLink[]
   lessonId?: string
   externalLinks?: { label: string; url: string }[]
+  /** Several things to choose from (Application: songs from your genres, a discovery pick…). */
+  options?: PartOption[]
 }
+
+export type PartOption = { label: string; sub?: string; url: string; kind: 'song' | 'listen' | 'lesson' | 'discover' }
 
 export type BlockWeek = {
   week: number

@@ -8,6 +8,9 @@ import { useSyncExternalStore } from 'react'
 import type { LessonStatus, Moment, PartId } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { isValidKey, todayKey, type DayKey } from '../lib/dates'
+import type { Answers } from '../assessment/types'
+import type { AssessmentResult } from '../assessment/scoring'
+import type { GeneratedPlan } from '../plan/model'
 
 export const STORAGE_KEY = 'practice-coach'
 export const LAB_STORAGE_KEY = 'fretboard-lab'
@@ -62,6 +65,18 @@ export type LabTime = Record<DayKey, Partial<Record<LabMode, number>>>
 
 export type LessonState = { status: LessonStatus; youtubeId?: string; decidedAt?: string }
 
+export type AssessmentDraft = { answers: Answers; order: string[]; startedAt: string }
+
+export type AssessmentState = {
+  draft: AssessmentDraft | null
+  /** newest last */
+  results: AssessmentResult[]
+  dismissedPrompt: boolean
+}
+
+/** What was active before the last plan replacement, so it can be restored. */
+export type PreviousPlan = { plan: GeneratedPlan | null; planStart: DayKey; override: Settings['override'] }
+
 export type AppData = {
   version: number
   settings: Settings
@@ -73,6 +88,10 @@ export type AppData = {
   moments: Record<string, Moment[]>
   draft: Draft | null
   labTime: LabTime
+  assessment: AssessmentState
+  /** null = Clay's original hand-built plan */
+  plan: GeneratedPlan | null
+  previousPlan: PreviousPlan | null
 }
 
 export const emptyParts = (): Record<PartId, boolean> => ({ triads: false, arps: false, concept: false, application: false })
@@ -95,6 +114,9 @@ export function defaultData(): AppData {
     moments: {},
     draft: null,
     labTime: {},
+    assessment: { draft: null, results: [], dismissedPrompt: false },
+    plan: null,
+    previousPlan: null,
   }
 }
 
@@ -177,6 +199,29 @@ export function normalize(raw: unknown): AppData {
         if (n > 0) row[m] = n
       }
       if (Object.keys(row).length) d.labTime[day] = row
+    }
+  }
+  if (isObj(raw.assessment)) {
+    const a = raw.assessment
+    const dr = isObj(a.draft) ? a.draft : null
+    d.assessment = {
+      draft:
+        dr && isObj(dr.answers) && Array.isArray(dr.order)
+          ? { answers: dr.answers as Answers, order: dr.order.filter((x): x is string => typeof x === 'string'), startedAt: String(dr.startedAt ?? '') }
+          : null,
+      results: Array.isArray(a.results)
+        ? (a.results.filter((r) => isObj(r) && typeof r.id === 'string' && isObj(r.skills) && Array.isArray(r.genres)) as unknown as AssessmentResult[])
+        : [],
+      dismissedPrompt: !!a.dismissedPrompt,
+    }
+  }
+  if (isObj(raw.plan) && Array.isArray(raw.plan.blocks) && raw.plan.blocks.length) d.plan = raw.plan as unknown as GeneratedPlan
+  if (isObj(raw.previousPlan) && isValidKey(raw.previousPlan.planStart)) {
+    const pp = raw.previousPlan
+    d.previousPlan = {
+      plan: isObj(pp.plan) && Array.isArray(pp.plan.blocks) ? (pp.plan as unknown as GeneratedPlan) : null,
+      planStart: pp.planStart as DayKey,
+      override: isObj(pp.override) ? { block: Number(pp.override.block) || 1, week: Number(pp.override.week) || 1 } : null,
     }
   }
   if (isObj(raw.draft) && isValidKey(raw.draft.date)) {

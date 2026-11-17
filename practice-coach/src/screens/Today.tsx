@@ -5,6 +5,7 @@ import { PART_IDS } from '../content/types'
 import { Icon } from '../components/Icon'
 import { ShareCard } from '../components/ShareCard'
 import { WeekStrip } from '../components/WeekStrip'
+import { AssessmentCard } from '../components/AssessmentCard'
 import { formatClock, formatLong, formatShort } from '../lib/dates'
 import { chime, keepAwake, primeAudio } from '../lib/feedback'
 import { useNow, useStats, useToday } from '../lib/hooks'
@@ -88,6 +89,8 @@ export function Today() {
       </header>
 
       <WeekStrip practiced={(d) => stats.byDay.has(d)} frozen={stats.frozen} today={today} />
+
+      <AssessmentCard dismissible />
 
       {pos.status === 'before' && (
         <div className="card flat small">

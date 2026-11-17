@@ -10,6 +10,7 @@ import { href } from '../lib/router'
 import { sessionParts } from '../lib/session'
 import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
+import { AssessmentCard } from '../components/AssessmentCard'
 
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
 
@@ -35,6 +36,8 @@ function PlanHome() {
           {pos.source === 'override' ? ' · pinned' : ''}. <a href={href('/settings')}>Change</a>
         </p>
       </div>
+
+      <AssessmentCard />
 
       <section className="stack-sm" aria-label="Block sequence">
         {BLOCKS.map((b) => {

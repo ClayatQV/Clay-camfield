@@ -12,6 +12,8 @@ import { LessonPage } from './screens/LessonPage'
 import { Lab } from './screens/Lab'
 import { Settings } from './screens/Settings'
 import { NotFound } from './screens/NotFound'
+import { Assessment } from './screens/Assessment'
+import { AssessmentResults } from './screens/AssessmentResults'
 
 export function App() {
   const route = useRoute()
@@ -59,6 +61,9 @@ export function App() {
     case 'settings':
       screen = <Settings />
       break
+    case 'assessment':
+      screen = second === 'results' ? <AssessmentResults id={route.segments[2]} /> : <Assessment />
+      break
     default:
       screen = <NotFound />
   }
@@ -66,7 +71,7 @@ export function App() {
   return (
     <div className="app">
       <main>{screen}</main>
-      <TabBar path={route.path} />
+      {!(first === 'assessment' && second !== 'results') && <TabBar path={route.path} />}
       <ToastHost />
       {updateReady && (
         <div className="banner" role="status">
