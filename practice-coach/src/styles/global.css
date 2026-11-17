@@ -1320,3 +1320,32 @@ input.range {
 .assess-card {
   border-color: var(--accent);
 }
+
+/* Application song choices */
+.options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.option-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  text-decoration: none;
+}
+.option-row > svg {
+  flex: none;
+  color: var(--accent);
+}
+.option-row.discover {
+  border-style: dashed;
+}
+.plan-banner {
+  border-color: var(--accent);
+}

@@ -1,6 +1,7 @@
 import { getData, update, type AssessmentDraft } from '../store/store'
 import { flowState } from './engine'
 import { scoreAssessment, type AssessmentResult } from './scoring'
+import { replacePlanFrom } from '../plan/actions'
 import type { AnswerValue } from './types'
 
 const emptyDraft = (): AssessmentDraft => ({ answers: {}, order: [], startedAt: new Date().toISOString() })
@@ -44,6 +45,8 @@ export function finishAssessment(): AssessmentResult | null {
   if (!d || flowState(d.answers).current) return null
   const result = scoreAssessment(d.answers)
   update((x) => ({ ...x, assessment: { ...x.assessment, draft: null, results: [...x.assessment.results, result] } }))
+  // Clay's choice: finishing the assessment replaces the plan (the old one stays restorable).
+  replacePlanFrom(result)
   return result
 }
 

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BLOCKS } from '../content/blocks'
 import type { PartId, SessionPart } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { Icon } from '../components/Icon'
@@ -11,7 +10,7 @@ import { chime, keepAwake, primeAudio } from '../lib/feedback'
 import { useNow, useStats, useToday } from '../lib/hooks'
 import { planPosition } from '../lib/plan'
 import { href } from '../lib/router'
-import { sessionParts } from '../lib/session'
+import { activePlan } from '../plan/model'
 import {
   discardDraft,
   draftHasContent,
@@ -30,9 +29,11 @@ import { useData, type LengthMode } from '../store/store'
 export function Today() {
   const data = useData()
   const today = useToday()
-  const pos = planPosition(data.settings, today)
-  const block = BLOCKS[pos.block - 1]
-  const { parts, detailed } = useMemo(() => sessionParts(pos.block, pos.week), [pos.block, pos.week])
+  const plan = useMemo(() => activePlan(data), [data])
+  const pos = planPosition(data.settings, today, plan)
+  const block = plan.blocks[pos.block - 1]
+  const parts = block.weekParts[pos.week - 1] ?? block.weekParts[0]
+  const detailed = block.detailed
   const stats = useStats(data, today)
 
   const draft = data.draft
@@ -100,7 +101,7 @@ export function Today() {
       )}
       {pos.status === 'after' && (
         <div className="card flat small">
-          All 26 weeks done. You're on the final week until you set a new start date in <a href={href('/settings')}>Settings</a>.
+          All {plan.totalWeeks} weeks done. You're on the final week until you set a new start date in <a href={href('/settings')}>Settings</a>.
         </div>
       )}
       {stats.pendingFreeze && !stats.practicedToday && (
@@ -259,6 +260,21 @@ function PartCard(props: {
         </button>
       </div>
 
+      {part.options && part.options.length > 0 && (
+        <div className="options">
+          <span className="label">Pick one</span>
+          {part.options.map((o) => (
+            <a key={o.label} className={`option-row ${o.kind}`} href={o.url} target="_blank" rel="noreferrer">
+              <span className="grow">
+                <strong>{o.label}</strong>
+                {o.sub && <span className="small muted"> · {o.sub}</span>}
+              </span>
+              <Icon name="external" size={18} label="Find a transcription" />
+            </a>
+          ))}
+        </div>
+      )}
+
       {(part.labLinks?.length || part.lessonId || part.externalLinks?.length || seconds > 0) && (
         <div className="links">
           {part.labLinks?.map((l) => (
@@ -271,7 +287,7 @@ function PartCard(props: {
           {part.lessonId && (
             <a className="link-row" href={href(`/lessons/${part.lessonId}`)}>
               <Icon name="lessons" size={18} />
-              <span className="grow">Open the lesson video</span>
+              <span className="grow">{part.options?.length ? 'Extra resource: lesson video' : 'Open the lesson video'}</span>
               <span aria-hidden>›</span>
             </a>
           )}

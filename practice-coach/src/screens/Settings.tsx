@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { BLOCKS, blockLength } from '../content/blocks'
+import { activePlan, blockLen } from '../plan/model'
 import { toast } from '../components/Toast'
 import { CLICK_TONES, getClick, setClick, testClick } from '../lib/click'
 import { formatLong, isValidKey, todayKey } from '../lib/dates'
@@ -19,7 +19,9 @@ export function Settings() {
   const data = useData()
   const s = data.settings
   const today = todayKey()
-  const pos = planPosition(s, today)
+  const plan = activePlan(data)
+  const pos = planPosition(s, today, plan)
+  const blockLength = (n: number) => blockLen(plan.blocks[n - 1] ?? plan.blocks[0])
   const fileRef = useRef<HTMLInputElement>(null)
   const [pinBlock, setPinBlock] = useState(s.override?.block ?? pos.block)
   const [pinWeek, setPinWeek] = useState(s.override?.week ?? pos.week)
@@ -89,8 +91,8 @@ export function Settings() {
               : pos.status === 'before'
                 ? `The plan starts ${formatLong(s.planStart)} (in ${pos.daysUntilStart} day${pos.daysUntilStart === 1 ? '' : 's'}).`
                 : pos.status === 'after'
-                  ? 'All 26 weeks are done. Pick a new start date to run it again.'
-                  : `Today is Block ${pos.block} · Week ${pos.week} (plan week ${pos.globalWeek} of 26).`}
+                  ? `All ${plan.totalWeeks} weeks are done. Pick a new start date to run it again.`
+                  : `Today is Block ${pos.block} · Week ${pos.week} (plan week ${pos.globalWeek} of ${plan.totalWeeks}).`}
           </p>
         </div>
 
@@ -108,7 +110,7 @@ export function Settings() {
                 setPinWeek((w) => Math.min(w, blockLength(b)))
               }}
             >
-              {BLOCKS.map((b) => (
+              {plan.blocks.map((b) => (
                 <option key={b.n} value={b.n}>
                   Block {b.n} · {b.title}
                 </option>
@@ -126,7 +128,7 @@ export function Settings() {
             <button
               className="btn sm"
               onClick={() => {
-                updateSettings({ planStart: startDateFor(pinBlock, pinWeek, today), override: null })
+                updateSettings({ planStart: startDateFor(pinBlock, pinWeek, today, plan), override: null })
                 toast(`Start date moved: today is Block ${pinBlock} · Week ${pinWeek}`)
               }}
             >

@@ -1,4 +1,3 @@
-import { BLOCKS } from '../content/blocks'
 import { COMMITMENT, PROFILE } from '../content/profile'
 import { tunesForBlock } from '../content/repertoire'
 import type { PartId } from '../content/types'
@@ -7,7 +6,8 @@ import { formatShort, addDays } from '../lib/dates'
 import { useToday } from '../lib/hooks'
 import { planPosition } from '../lib/plan'
 import { href } from '../lib/router'
-import { sessionParts } from '../lib/session'
+import { activePlan, doneKey, type ActivePlan } from '../plan/model'
+import { restorePreviousPlan } from '../plan/actions'
 import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
@@ -15,32 +15,48 @@ import { AssessmentCard } from '../components/AssessmentCard'
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
 
 export function Plan({ blockParam }: { blockParam?: string }) {
+  const data = useData()
+  const plan = activePlan(data)
   const n = Number(blockParam)
-  if (blockParam && n >= 1 && n <= BLOCKS.length) return <BlockDetail n={n} />
-  return <PlanHome />
+  if (blockParam && n >= 1 && n <= plan.blocks.length) return <BlockDetail n={n} plan={plan} />
+  return <PlanHome plan={plan} />
 }
 
-function PlanHome() {
+function PlanHome({ plan }: { plan: ActivePlan }) {
   const data = useData()
   const today = useToday()
-  const pos = planPosition(data.settings, today)
+  const pos = planPosition(data.settings, today, plan)
   const p = PROFILE
 
   return (
     <div className="screen">
       <div className="screen-head">
         <span className="eyebrow">Plan</span>
-        <h1>Six months, nine blocks</h1>
+        <h1>{plan.source === 'original' ? 'Six months, nine blocks' : plan.title}</h1>
         <p className="muted small">
-          {COMMITMENT} Started {formatShort(data.settings.planStart)}
+          {plan.source === 'original' ? COMMITMENT : plan.summary} Started {formatShort(data.settings.planStart)}
           {pos.source === 'override' ? ' · pinned' : ''}. <a href={href('/settings')}>Change</a>
         </p>
       </div>
 
+      {plan.source === 'assessment' && (
+        <section className="card plan-banner">
+          <span className="eyebrow">Built from your assessment{plan.createdAt ? ` · ${formatShort(plan.createdAt.slice(0, 10))}` : ''}</span>
+          <p className="small">
+            Every block was chosen from your answers: what you know but don't use yet, your goals and your genres. Retake the assessment after a block to rebuild it.
+          </p>
+          {data.previousPlan && (
+            <button className="btn sm" onClick={() => restorePreviousPlan()}>
+              Restore my previous plan
+            </button>
+          )}
+        </section>
+      )}
+
       <AssessmentCard />
 
       <section className="stack-sm" aria-label="Block sequence">
-        {BLOCKS.map((b) => {
+        {plan.blocks.map((b) => {
           const current = b.n === pos.block
           const past = b.n < pos.block
           const startDay = addDays(data.settings.planStart, (b.weeks[0] - 1) * 7)
@@ -92,6 +108,7 @@ function PlanHome() {
         </details>
       </section>
 
+      {plan.source === 'original' && (
       <section className="card">
         <h2>Repertoire bank</h2>
         <div className="table-wrap">
@@ -118,6 +135,7 @@ function PlanHome() {
           </table>
         </div>
       </section>
+      )}
     </div>
   )
 }
@@ -131,13 +149,12 @@ function Profile({ label, text }: { label: string; text: string }) {
   )
 }
 
-function BlockDetail({ n }: { n: number }) {
+function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
   const data = useData()
   const today = useToday()
-  const pos = planPosition(data.settings, today)
-  const b = BLOCKS[n - 1]
-  const d = b.detail
-  const tunes = tunesForBlock(n)
+  const pos = planPosition(data.settings, today, plan)
+  const b = plan.blocks[n - 1]
+  const tunes = plan.source === 'original' ? tunesForBlock(n) : []
   const isCurrent = pos.block === n
 
   return (
@@ -154,103 +171,105 @@ function BlockDetail({ n }: { n: number }) {
         <p className="muted">{b.summary}</p>
       </div>
 
-      {d ? (
-        <>
-          <section className="card">
-            <h2>Daily session</h2>
-            <div className="table-wrap">
-              <table className="plain">
-                <thead>
-                  <tr>
-                    <th>Part</th>
-                    <th>30</th>
-                    <th>60</th>
-                    <th>What</th>
+      {b.daily && (
+        <section className="card">
+          <h2>Daily session</h2>
+          <div className="table-wrap">
+            <table className="plain">
+              <thead>
+                <tr>
+                  <th>Part</th>
+                  <th>30</th>
+                  <th>60</th>
+                  <th>What</th>
+                </tr>
+              </thead>
+              <tbody>
+                {b.daily.map((r) => (
+                  <tr key={r.part}>
+                    <td>
+                      <strong>{PART_NAMES[r.part]}</strong>
+                    </td>
+                    <td className="mono">{r.m30}</td>
+                    <td className="mono">{r.m60}</td>
+                    <td className="small">{r.what}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {d.daily.map((r) => (
-                    <tr key={r.part}>
-                      <td>
-                        <strong>{PART_NAMES[r.part]}</strong>
-                      </td>
-                      <td className="mono">{r.m30}</td>
-                      <td className="mono">{r.m60}</td>
-                      <td className="small">{r.what}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
-          <section className="stack">
-            <h2>Week by week</h2>
-            {d.table.map((w) => {
-              const cur = isCurrent && pos.week === w.week
-              const parts = sessionParts(n, w.week).parts
-              return (
-                <div key={w.week} className={`card week-card${cur ? ' current' : ''}`}>
-                  <div className="row-between">
-                    <strong>Week {w.week}</strong>
-                    {cur && <span className="pill">This week</span>}
-                  </div>
-                  <WeekRow label="Triads" text={w.triads} link={parts[0].labLinks?.[0]?.labUrl} />
-                  <WeekRow label="Arpeggios" text={w.arps} link={parts[1].labLinks?.[0]?.labUrl} />
-                  <WeekRow label="Concept" text={w.concept} link={parts[2].labLinks?.[0]?.labUrl} />
-                  <WeekRow label="Application" text={w.application} lesson={parts[3].lessonId} />
+      {b.table && b.detailed ? (
+        <section className="stack">
+          <h2>Week by week</h2>
+          {b.table.map((w) => {
+            const cur = isCurrent && pos.week === w.week
+            const parts = b.weekParts[w.week - 1] ?? b.weekParts[0]
+            return (
+              <div key={w.week} className={`card week-card${cur ? ' current' : ''}`}>
+                <div className="row-between">
+                  <strong>Week {w.week}</strong>
+                  {cur && <span className="pill">This week</span>}
                 </div>
-              )
-            })}
-          </section>
-
-          <section className="card">
-            <h2>Done when</h2>
-            {d.doneWhen.map((t, i) => {
-              const key = `b${n}:${i}`
-              const checked = !!data.doneWhen[key]
-              return (
-                <label key={key} className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() =>
-                      update((x) => {
-                        const next = { ...x.doneWhen }
-                        if (checked) delete next[key]
-                        else next[key] = true
-                        return { ...x, doneWhen: next }
-                      })
-                    }
-                  />
-                  <span style={checked ? { textDecoration: 'line-through', color: 'var(--muted)' } : undefined}>{t}</span>
-                </label>
-              )
-            })}
-          </section>
-
-          {(d.tune || d.notes) && (
-            <section className="card">
-              {d.tune && (
-                <>
-                  <span className="label">Block tune</span>
-                  <strong>
-                    “{d.tune.title}” <span className="muted">— {d.tune.artist}</span>
-                  </strong>
-                </>
-              )}
-              {d.notes?.map((t) => (
-                <p key={t} className="small">
-                  {t}
-                </p>
-              ))}
-            </section>
-          )}
-        </>
+                <WeekRow label={parts[0].title} text={w.triads} link={parts[0].labLinks?.[0]?.labUrl} />
+                <WeekRow label="Arpeggios" text={w.arps} link={parts[1].labLinks?.[0]?.labUrl} />
+                <WeekRow label="Concept" text={w.concept} link={parts[2].labLinks?.[0]?.labUrl} />
+                <WeekRow label="Application" text={w.application} lesson={parts[3].options?.length ? undefined : parts[3].lessonId} />
+              </div>
+            )
+          })}
+        </section>
       ) : (
         <section className="card empty">
           <p>The week-by-week detail for this block gets written when you get close to it.</p>
           <p className="small">Until then, Today runs the permanent triads and arpeggios plus this block's focus.</p>
+        </section>
+      )}
+
+      {b.doneWhen && b.doneWhen.length > 0 && (
+        <section className="card">
+          <h2>Done when</h2>
+          {b.doneWhen.map((t, i) => {
+            const key = doneKey(plan, n, i)
+            const checked = !!data.doneWhen[key]
+            return (
+              <label key={key} className="check-row">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() =>
+                    update((x) => {
+                      const next = { ...x.doneWhen }
+                      if (checked) delete next[key]
+                      else next[key] = true
+                      return { ...x, doneWhen: next }
+                    })
+                  }
+                />
+                <span style={checked ? { textDecoration: 'line-through', color: 'var(--muted)' } : undefined}>{t}</span>
+              </label>
+            )
+          })}
+        </section>
+      )}
+
+      {(b.tune || b.notes) && (
+        <section className="card">
+          {b.tune && (
+            <>
+              <span className="label">Block tune</span>
+              <strong>
+                “{b.tune.title}” <span className="muted">— {b.tune.artist}</span>
+              </strong>
+            </>
+          )}
+          {b.notes?.map((t) => (
+            <p key={t} className="small">
+              {t}
+            </p>
+          ))}
         </section>
       )}
 
@@ -274,7 +293,7 @@ function BlockDetail({ n }: { n: number }) {
             ‹ Block {n - 1}
           </a>
         )}
-        {n < BLOCKS.length && (
+        {n < plan.blocks.length && (
           <a className="btn grow" href={href(`/plan/block/${n + 1}`)}>
             Block {n + 1} ›
           </a>
