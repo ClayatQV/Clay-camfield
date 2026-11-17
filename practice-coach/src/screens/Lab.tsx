@@ -4,6 +4,13 @@ import { effectiveTheme } from '../lib/theme'
 import { useData } from '../store/store'
 
 const MODE_NAMES: Record<string, string> = { chords: 'Chords', arpeggios: 'Arpeggios', scales: 'Scales', technique: 'Technique' }
+const NICE: Record<string, string> = {
+  close3: 'triads', open3: 'open triads', shell37: 'shells', shell73: 'shells', close4: 'close', drop2: 'drop 2', drop3: 'drop 3', drop24: 'drop 2&4',
+  c4: 'cycle of 4ths', c5: 'cycle of 5ths', chrom: 'chromatic', '251': 'ii–V–I', m251: 'minor ii–V–i',
+  majpent: 'major pentatonic', minpent: 'minor pentatonic', lyddom: 'Lydian dominant', hwdim: 'half-whole dim', bebdom: 'bebop dominant',
+  majblues: 'major blues', maj: 'major', min: 'minor', dim7: '°7', '7b9': '7♭9', '7s9': '7♯9',
+}
+const nice = (v: string | null) => (v ? NICE[v] ?? v.replace(/b(?=\d|$)/g, '♭') : null)
 
 /** Fretboard Lab (public/fretboard-lab.html) in a full-height frame; route query = preset. */
 export function Lab({ query }: { query: URLSearchParams }) {
@@ -13,7 +20,13 @@ export function Lab({ query }: { query: URLSearchParams }) {
   const fullSrc = labFileUrl(query, { theme })
   const hasPreset = query.has('mode')
   const summary = hasPreset
-    ? [MODE_NAMES[query.get('mode') ?? ''] ?? query.get('mode'), query.get('root'), query.get('type') ?? query.get('scale'), query.get('voicing')]
+    ? [
+        MODE_NAMES[query.get('mode') ?? ''] ?? query.get('mode'),
+        [query.get('root')?.replace('b', '♭'), nice(query.get('type') ?? query.get('scale'))].filter(Boolean).join(' '),
+        nice(query.get('voicing')),
+        nice(query.get('move')),
+        query.get('pos') ? `fret ${query.get('pos')}` : null,
+      ]
         .filter(Boolean)
         .join(' · ')
     : 'Your last settings'

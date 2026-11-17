@@ -98,6 +98,9 @@ svg.win{width:100%;max-width:620px;display:block;margin:0 auto}
 .answer{font-family:var(--mono);color:var(--accent);min-height:1.4em}
 .score{font-family:var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
 @media (max-width:560px){.head{grid-template-columns:1fr}.nextc{text-align:left}}
+/* Practice Coach embed (?embed=1): drop the big header so the neck fits on a phone */
+body.embed header h1, body.embed header .lede{display:none}
+body.embed header{padding-top:12px}
 </style>
 </head>
 <body>
@@ -404,6 +407,63 @@ var state={mode:"chords",bpm:60,label:"deg",
   t:{ex:"spider",perm:"1234",pair:"13",pos:"5",rounds:"3",rate:"2"}};
 try{var sv=JSON.parse(localStorage.getItem("fretboard-lab")||"null");if(sv){["mode","bpm","label"].forEach(function(k){if(k in sv)state[k]=sv[k];});["c","a","s","t"].forEach(function(g){if(sv[g])for(var k in sv[g])if(k in state[g])state[g][k]=sv[g][k];});}}catch(e){}
 function save(){try{localStorage.setItem("fretboard-lab",JSON.stringify(state));}catch(e){}}
+
+/* ================= URL presets (Practice Coach deep links) =================
+   ?mode=scales&root=G&scale=majpent&pos=7
+   ?mode=chords&root=C&type=maj7&voicing=drop2&set=0&move=c4
+   The same params also work after # (e.g. #mode=arpeggios&type=m7). They override
+   the saved state on load (and on hash changes); invalid values are ignored.
+   Keys: mode, bpm, label (deg|note), theme (light|dark), embed (1), and the
+   current mode's controls: root, type, voicing, set (index or strings, e.g. GBE),
+   move, custom, zone, bass, beats, all | pos, pat, start, rate | scale, fing, deg |
+   ex, perm, pair, rounds. */
+var PRESET_GROUP={chords:"c",chord:"c",arpeggios:"a",arpeggio:"a",arps:"a",arp:"a",scales:"s",scale:"s",technique:"t",tech:"t"};
+var PRESET_MODE={c:"chords",a:"arpeggios",s:"scales",t:"technique"};
+var PRESET_ENUM={zone:["low","mid","high"],bass:["any","r","3","5","7","t"],beats:["2","4","8"],pat:null,start:["low","r","3","5","7"],
+  fing:["box","2","3","4"],rate:["1","2","3","4"],ex:["spider","skip","legato","diag"],pair:["12","13","14","23","24","34"],rounds:["1","2","3","4","5"]};
+var PRESET_MOVES=["static","c4","c5","chrom","251","m251","custom"];
+function presetParams(){var out=null;
+  function add(str){if(!str||str.indexOf("=")<0)return;try{new URLSearchParams(str).forEach(function(v,k){out=out||{};out[k]=v;});}catch(e){}}
+  add(location.search.slice(1));add(location.hash.slice(1));return out;}
+function presetRoot(v){var m=/^([A-Ga-g])([#♯sb♭]*)$/.exec(String(v).trim());if(!m)return null;var pc=LPC[LETTERS.indexOf(m[1].toUpperCase())];
+  for(var i=0;i<m[2].length;i++){var c=m[2][i];pc+=(c==="b"||c==="♭")?-1:1;}return ROOTS[((pc%12)+12)%12];}
+function presetSet(voicing,v){var vo=VO[voicing];if(!vo)return null;v=String(v).trim();
+  if(/^\d+$/.test(v))return +v<vo.sets.length?String(+v):null;
+  var want=v.replace(/[^A-Za-z]/g,""),i,lab;
+  for(i=0;i<vo.sets.length;i++){lab=vo.sets[i].map(function(x){return SNAME[x];}).join("");if(lab===want)return String(i);}
+  for(i=0;i<vo.sets.length;i++){lab=vo.sets[i].map(function(x){return SNAME[x];}).join("").toLowerCase();if(lab===want.toLowerCase())return String(i);}
+  return null;}
+function presetValue(g,key,v){
+  if(key==="root")return presetRoot(v);
+  if(key==="type"){if(CH[v])return v;var id=ALIAS[v]!=null?ALIAS[v]:ALIAS[String(v).toLowerCase()];return id!=null&&CH[id]?id:null;}
+  if(key==="scale")return SC[v]?v:null;
+  if(key==="voicing")return VO[v]?v:null;
+  if(key==="move"){if(g==="a"&&v==="chrom")return null;return PRESET_MOVES.indexOf(v)>=0?v:null;}
+  if(key==="pos"){var n=Math.round(+v);if(isNaN(n))return null;return (g==="t"?n>=1:n>=0)&&n<=12?String(n):null;}
+  if(key==="custom")return String(v).slice(0,200);
+  if(key==="all")return v==="1"||v==="true"||v==="yes";
+  if(key==="deg")return /^\d+$/.test(v)?v:null;
+  if(key==="perm")return /^[1-4]{4}$/.test(v)&&v.split("").sort().join("")==="1234"?v:null;
+  if(key==="pat")return (g==="a"?["ud","up","dn"]:["line","3rds","4ths","g3","g4","tri","sev"]).indexOf(v)>=0?v:null;
+  if(PRESET_ENUM[key])return PRESET_ENUM[key].indexOf(v)>=0?v:null;
+  return null;}
+function applyPreset(P){if(!P)return null;
+  if(P.theme==="light"||P.theme==="dark")document.documentElement.setAttribute("data-theme",P.theme);
+  if(P.embed==="1"&&document.body)document.body.classList.add("embed");
+  var g=PRESET_GROUP[String(P.mode||"").toLowerCase()],mode=g?PRESET_MODE[g]:null;
+  if(!g)g=({chords:"c",arpeggios:"a",scales:"s",technique:"t"})[state.mode]||"c";
+  if(mode)state.mode=mode;
+  if(P.bpm!=null){var b=Math.round(+P.bpm);if(b>=30&&b<=240)state.bpm=b;}
+  if(P.label==="deg"||P.label==="note")state.label=P.label;else if(P.label==="name"||P.label==="names")state.label="note";
+  var G=state[g],k,key,val;
+  for(k in P){if(!Object.prototype.hasOwnProperty.call(P,k))continue;
+    key=(g==="s"&&k==="type")?"scale":k;
+    if(key==="set"||key==="mode"||!(key in G))continue;
+    val=presetValue(g,key,P[k]);if(val!==null)G[key]=val;}
+  if(g==="c"&&P.set!=null){val=presetSet(G.voicing,P.set);if(val!==null)G.set=val;}
+  else if(g==="c"&&P.voicing!=null&&+G.set>=VO[G.voicing].sets.length)G.set="0";
+  save();return mode;}
+var presetMode=applyPreset(presetParams());
 function $(id){return document.getElementById(id);}
 function opt(sel,value,text){var o=document.createElement("option");o.value=value;o.textContent=text;sel.appendChild(o);return o;}
 function lab(cs,tok){return state.label==="deg"?degLabel(tok):cs.names[cs.degs.indexOf(tok)];}
@@ -734,13 +794,16 @@ function showMode(m){if(MODES.indexOf(m)<0)m="chords";if(metro.on)metroStop();st
   MODES.forEach(function(x){$("mode-"+x).hidden=x!==m;$("tab-"+x).setAttribute("aria-selected",x===m?"true":"false");});
   if(location.hash!=="#"+m){try{history.replaceState(null,"","#"+m);}catch(e){}}}
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){showMode(b.getAttribute("data-mode"));});});
-window.addEventListener("hashchange",function(){showMode(location.hash.slice(1));});
+function syncControls(){fillSets();["c","a","s","t"].forEach(function(g){for(var k in state[g]){var e=$(g+"-"+k);if(!e)continue;if(e.type==="checkbox")e.checked=!!state[g][k];else e.value=state[g][k];}});bpm.value=state.bpm;labs.value=state.label;}
+window.addEventListener("hashchange",function(){var h=location.hash.slice(1);
+  if(h.indexOf("=")>=0){var m=applyPreset(presetParams());syncControls();renderAll();showMode(m||state.mode);return;}
+  showMode(h);});
 document.addEventListener("keydown",function(e){var t=e.target&&e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA")return;
   var d=e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:0;if(!d)return;
   if(state.mode==="chords")cStep(d);else if(state.mode==="arpeggios")aStep.step(d);else if(state.mode==="scales")sStep.step(d);else tStep.step(d);});
 function renderAll(){chordsAll();renderArps();renderScales();renderTech();}
 renderAll();cBeats(-1);
-showMode(location.hash?location.hash.slice(1):state.mode);
+showMode(presetMode||(location.hash&&location.hash.indexOf("=")<0?location.hash.slice(1):state.mode));
 })();
 </script>
 </body>

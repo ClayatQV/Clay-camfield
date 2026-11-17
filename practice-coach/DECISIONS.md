@@ -38,3 +38,12 @@ Choices made while building v0.1 without stopping to ask. Newest at the bottom o
 - **Drill presets I added** beyond the brief's four: B♭ Lydian dominant and A minor pentatonic for Kid Charlemagne; F minor pentatonic / F blues for Sookie Sookie; major pentatonic for Affirmation; arpeggio/shell presets for the Chase Maddox videos.
 - **Video errors** (embedding disabled 101/150/153, removed 100, offline) show a plain message and an "Open on YouTube" button that starts at the current A point. Offline also offers Retry.
 - **Testing note**: YouTube is blocked in the build sandbox, so the loop and ladder were tested against a stub of the IFrame API (simulated clock and playback rate). Test the real player on your phone.
+
+## Fretboard Lab
+- **The original file is kept untouched at `reference/fretboard-lab.html`**; the served copy is `public/fretboard-lab.html`. The only changes to the served copy are additive: a "URL presets" block right after its state is loaded, a `syncControls()` for hash changes, two lines in the mode/hash wiring, and three CSS lines for `?embed=1`. Diff the two files to see exactly what changed.
+- **Preset params** go in the query string or after `#`: `mode`, `bpm`, `label`, `theme`, `embed`, plus the current mode's control ids (`root`, `type`, `voicing`, `set`, `move`, `zone`, `pos`, `start`, `pat`, `scale`, `fing`, …). `set` accepts an index or string names like `GBE` / `DGB` / `ADG`. Roots accept `Bb`, `B♭`, `A#`. `type=` also works as an alias for `scale=` in Scales mode. Invalid values are ignored, so a bad link falls back to the saved state instead of breaking.
+- **Presets override the Lab's saved `fretboard-lab` state on load and are then saved**, so the Lab reopens where the last deep link left it.
+- **In-app, the Lab runs in a full-height iframe** with `embed=1` (hides the big title) and `theme=` matching the app. A slim bar shows what the preset is, a Back button (when you came from a link) and a full-screen link.
+- **Arpeggio position for B7 / C7 drills**: the brief didn't give one; I used frets 7 and 8 so they sit near the Kid Charlemagne lines.
+- **`src/lib/lab.test.ts` lists every Lab link the app ships** (116 across all blocks, weeks and lessons). Each was checked in Chromium against a deliberately different saved Lab state: right mode and every control value.
+- **Test files are excluded from the app typecheck** (`tsconfig.app.json`); Vitest type-strips them when it runs them.
