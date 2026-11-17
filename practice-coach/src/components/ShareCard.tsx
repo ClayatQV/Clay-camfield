@@ -48,8 +48,8 @@ export function ShareCard({
           <Icon name="check" size={16} /> {minutes} min logged
         </span>
         {streak > 0 && (
-          <span className="pill amber">
-            <Icon name="flame" size={16} /> {streak}-day streak
+          <span className="pill fire">
+            <Icon name="fire" size={16} /> {streak}-day streak
           </span>
         )}
       </div>

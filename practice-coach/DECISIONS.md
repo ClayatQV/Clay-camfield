@@ -53,3 +53,10 @@ Choices made while building v0.1 without stopping to ask. Newest at the bottom o
 - **Offline verified in Chromium**: after one online visit, every screen and Fretboard Lab (with presets) load with the network off; lesson videos show "needs a connection" with Open on YouTube and Retry.
 - **Export → reset → import verified** to restore the app data and the Lab's settings byte for byte.
 - **`vercel.json` / `netlify.toml`** set `no-cache` on `sw.js`, `index.html` and `fretboard-lab.html` and long-term caching on hashed `assets/`, so updates reach the phone quickly.
+
+## v0.2 quick wins (from Clay's 11-17 voice notes)
+- **Drills show the whole neck** (frets 0–15, the same view as the neck map) in every Lab mode, including the chord drill. On a phone the neck scrolls sideways inside its box, like the neck map, and re-centers on the current note at each step.
+- **Click volume and tone** live in Fretboard Lab's saved state (`clickVol`, `clickTone`) so there's one setting: the app's Settings → Metronome click and the Lab's new "Click" panel both edit it. Tones: Classic (the original sound), Woodblock, Beep, Low. Volume 70% equals the original loudness.
+- **Fire and ice**: a Mon–Sun strip on Today and Progress shows a flame on practiced days and a snowflake on days the freeze covered. The streak pill and stat use the flame too.
+- **Groundwork for the stats page**: sessions now save seconds per part (`partSeconds`). The Lab tells the app which mode is open and when you're active (touches or a running click); the app counts that time per mode per day (`labTime`), pausing after 90 s idle or when the app is in the background. Sessions logged before this only have totals, so charts start from now.
+- **Fixed a sideways scroll in the Lab on phones** (also present in the original file): grid items can now shrink below their content width. The tempo row wraps when the new Click button doesn't fit.

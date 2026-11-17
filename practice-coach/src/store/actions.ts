@@ -2,7 +2,7 @@
 import type { PartId } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { todayKey, type DayKey } from '../lib/dates'
-import { emptyParts, getData, update, zeroElapsed, type Draft, type LengthMode, type Session } from './store'
+import { emptyParts, getData, update, zeroElapsed, type Draft, type LabMode, type LengthMode, type Session } from './store'
 
 export function newDraft(date: DayKey, lengthMode: LengthMode): Draft {
   return { date, lengthMode, elapsed: zeroElapsed(), running: null, startedAt: null, done: emptyParts(), note: '' }
@@ -94,6 +94,7 @@ export function finishSession(input: {
     block: input.block,
     week: input.week,
     partLabels: input.partLabels,
+    partSeconds: Object.fromEntries(PART_IDS.map((p) => [p, Math.round(d.elapsed[p])])) as Record<PartId, number>,
     finishedAt: new Date().toISOString(),
   }
   update((x) => ({ ...x, sessions: [...x.sessions, session], draft: null }))
@@ -102,4 +103,14 @@ export function finishSession(input: {
 
 export function deleteSession(id: string) {
   update((x) => ({ ...x, sessions: x.sessions.filter((s) => s.id !== id) }))
+}
+
+/** Add active Lab seconds to a day (called by the Lab screen in small batches). */
+export function addLabTime(date: DayKey, mode: LabMode, seconds: number) {
+  if (seconds < 1) return
+  update((x) => {
+    const day = { ...(x.labTime[date] ?? {}) }
+    day[mode] = Math.round((day[mode] ?? 0) + seconds)
+    return { ...x, labTime: { ...x.labTime, [date]: day } }
+  })
 }

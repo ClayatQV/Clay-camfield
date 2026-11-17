@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../components/Icon'
+import { WeekStrip } from '../components/WeekStrip'
 import { addDays, diffDays, formatShort, fromKey, weekStart, weekdayShort, type DayKey } from '../lib/dates'
 import { useStats, useToday } from '../lib/hooks'
 import { href } from '../lib/router'
@@ -30,11 +31,28 @@ export function Progress() {
       </div>
 
       <div className="stats">
-        <Stat label="Current streak" value={`${stats.current}`} unit={stats.current === 1 ? 'day' : 'days'} icon="flame" />
+        <Stat label="Current streak" value={`${stats.current}`} unit={stats.current === 1 ? 'day' : 'days'} icon="fire" />
         <Stat label="Longest streak" value={`${stats.longest}`} unit={stats.longest === 1 ? 'day' : 'days'} />
         <Stat label="Total time" value={fmtMinutes(total)} />
         <Stat label="This week" value={fmtMinutes(thisWeek)} />
       </div>
+
+      <section className="card">
+        <div className="row-between">
+          <h2>This week</h2>
+          <span className="small muted">
+            <span style={{ color: 'var(--fire)' }}>
+              <Icon name="fire" size={14} />
+            </span>{' '}
+            practiced ·{' '}
+            <span style={{ color: 'var(--freeze)' }}>
+              <Icon name="snow" size={14} />
+            </span>{' '}
+            frozen
+          </span>
+        </div>
+        <WeekStrip practiced={(d) => stats.byDay.has(d)} frozen={stats.frozen} today={today} />
+      </section>
 
       <FreezeCard
         used={stats.freezeThisWeek.used}

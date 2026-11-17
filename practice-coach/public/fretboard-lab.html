@@ -101,6 +101,14 @@ svg.win{width:100%;max-width:620px;display:block;margin:0 auto}
 /* Practice Coach embed (?embed=1): drop the big header so the neck fits on a phone */
 body.embed header h1, body.embed header .lede{display:none}
 body.embed header{padding-top:12px}
+/* Click settings panel */
+.tempo{flex-wrap:wrap}
+/* Practice Coach: grid children may shrink, so the page never scrolls sideways on a phone */
+.wrap>*,.mode>*,.panel>*{min-width:0}
+.clickset{flex-basis:100%;box-sizing:border-box;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:8px}
+.clickset[hidden]{display:none}
+.clickset label{display:flex;gap:8px;align-items:center;font-size:.9rem}
+.clickset input[type=range]{width:140px;accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -130,6 +138,12 @@ body.embed header{padding-top:12px}
       <input type="number" id="bpm" min="30" max="240">
       <button type="button" id="bpm-up" aria-label="Faster">+</button>
       <div class="seg-lab" id="labs-wrap"><select id="labels" aria-label="Labels"><option value="deg">Degrees</option><option value="note">Note names</option></select></div>
+      <button type="button" id="click-btn" aria-expanded="false" aria-controls="click-set">Click</button>
+    </div>
+    <div class="clickset" id="click-set" hidden>
+      <label>Volume <input type="range" id="click-vol" min="0" max="100" step="5" aria-label="Click volume"><span id="click-vol-v"></span></label>
+      <label>Tone <select id="click-tone" aria-label="Click tone"><option value="classic">Classic</option><option value="wood">Woodblock</option><option value="beep">Beep</option><option value="low">Low</option></select></label>
+      <button type="button" id="click-test">Test</button>
     </div>
   </nav>
 
@@ -173,7 +187,7 @@ body.embed header{padding-top:12px}
         <div><div class="big" id="c-now"></div><div class="mid" id="c-now-sub"></div><div class="say" id="c-say"></div></div>
         <div class="nextc">Next<strong id="c-nx"></strong><span id="c-nx-sub"></span></div>
       </div>
-      <div class="neck-wrap"><svg class="win" id="c-drill" role="img" aria-label="Current and next chord shapes"></svg></div>
+      <div class="neck-wrap"><svg class="full" id="c-drill" role="img" aria-label="Current and next chord shapes"></svg></div>
       <div class="chips" id="c-chips" aria-label="Jump to a chord"></div>
     </div>
     <div class="panel">
@@ -400,12 +414,12 @@ var SC_RAW=[
 var SCALES=[],SC={};SC_RAW.forEach(function(r){var s={group:r[0],id:r[1],name:r[2],degs:r[3],fits:r[4]};SCALES.push(s);SC[s.id]=s;});
 
 /* ================= state ================= */
-var state={mode:"chords",bpm:60,label:"deg",
+var state={mode:"chords",bpm:60,label:"deg",clickVol:70,clickTone:"classic",
   c:{root:"C",type:"maj",voicing:"close3",set:"0",move:"c4",custom:"Dm7 G7 Cmaj7 A7b9",zone:"mid",bass:"any",beats:"4",all:false,qmode:"name"},
   a:{root:"C",type:"maj7",pos:"5",pat:"ud",start:"low",move:"static",custom:"Dm7 G7 Cmaj7",rate:"2"},
   s:{root:"C",scale:"ionian",fing:"box",pos:"5",deg:"0",pat:"line",rate:"2"},
   t:{ex:"spider",perm:"1234",pair:"13",pos:"5",rounds:"3",rate:"2"}};
-try{var sv=JSON.parse(localStorage.getItem("fretboard-lab")||"null");if(sv){["mode","bpm","label"].forEach(function(k){if(k in sv)state[k]=sv[k];});["c","a","s","t"].forEach(function(g){if(sv[g])for(var k in sv[g])if(k in state[g])state[g][k]=sv[g][k];});}}catch(e){}
+try{var sv=JSON.parse(localStorage.getItem("fretboard-lab")||"null");if(sv){["mode","bpm","label","clickVol","clickTone"].forEach(function(k){if(k in sv)state[k]=sv[k];});["c","a","s","t"].forEach(function(g){if(sv[g])for(var k in sv[g])if(k in state[g])state[g][k]=sv[g][k];});}}catch(e){}
 function save(){try{localStorage.setItem("fretboard-lab",JSON.stringify(state));}catch(e){}}
 
 /* ================= URL presets (Practice Coach deep links) =================
@@ -475,6 +489,9 @@ var NS="http://www.w3.org/2000/svg";
 function el(tag,attrs,parent,text){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;if(parent)parent.appendChild(e);return e;}
 var CMAP={r:"var(--root)","3":"var(--third)","5":"var(--fifth)","7":"var(--seventh)",t:"var(--tension)",n:"var(--ink)",f1:"var(--root)",f2:"var(--third)",f3:"var(--fifth)",f4:"var(--seventh)"};
 function col(c){return CMAP[c]||"var(--tension)";}
+/* Practice Coach: drills show the whole neck; on a narrow screen keep the current fret in view */
+function scrollNeckTo(svg,fret,to){var w=svg.parentNode;if(!w||w.scrollWidth<=w.clientWidth+2)return;
+  var W=26+(to+1)*44+8,x=(26+(fret+0.5)*44)/W*svg.getBoundingClientRect().width;w.scrollLeft=Math.max(0,x-w.clientWidth/2);}
 function renderNeck(svg,o){
   while(svg.firstChild)svg.removeChild(svg.firstChild);
   var from=o.from,to=o.to,fw=o.fw||44,padL=26,padT=28,gap=22,cols=to-from+1,W=padL+cols*fw+8,H=padT+5*gap+36;
@@ -539,9 +556,12 @@ function sayShape(sh,cs){return sh.toks.map(function(t){return cs.names[cs.degs.
 
 /* ================= metronome ================= */
 var metro={on:false,ctx:null,timer:null,next:0,tick:0,q:[],owner:null};
-function metroClick(t,level){var o=metro.ctx.createOscillator(),g=metro.ctx.createGain();o.frequency.value=level===2?1650:level===1?1100:800;
-  var v=level===2?.55:level===1?.32:.14;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.045);
-  o.connect(g);g.connect(metro.ctx.destination);o.start(t);o.stop(t+.06);}
+var CLICK_TONES={classic:{type:"sine",f:[800,1100,1650],len:.045,k:1},wood:{type:"triangle",f:[620,880,1250],len:.03,k:1.25},
+  beep:{type:"square",f:[880,1320,1760],len:.05,k:.4},low:{type:"sine",f:[330,440,550],len:.07,k:1.3}};
+function metroClick(t,level,ctx){ctx=ctx||metro.ctx;var T=CLICK_TONES[state.clickTone]||CLICK_TONES.classic,vol=Math.max(0,Math.min(100,+state.clickVol))/70;
+  if(vol<=0)return;var o=ctx.createOscillator(),g=ctx.createGain();o.type=T.type;o.frequency.value=T.f[level];
+  var v=Math.min(.95,(level===2?.55:level===1?.32:.14)*T.k*vol);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+T.len);
+  o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+T.len+.02);}
 function metroStart(owner){
   metroStop();metro.on=true;metro.owner=owner;metro.tick=0;metro.q=[];$(owner.btn).textContent="Stop click";
   try{metro.ctx=metro.ctx||new (window.AudioContext||window.webkitAudioContext)();if(metro.ctx.resume)metro.ctx.resume();}catch(e){metro.ctx=null;}
@@ -620,7 +640,9 @@ function renderChordDrill(){
   $("c-nx").textContent=P.length>1?n.cs.label:"";$("c-nx-sub").textContent=P.length>1?degLabel(n.sh.bass)+" in bass":"";
   var mn=Math.min(p.sh.min,n.sh.min),mx=Math.max(p.sh.max,n.sh.max),from=Math.max(0,mn-2),to=Math.min(17,Math.max(from+7,mx+2)),moves=[],ghost=[];
   if(P.length>1)p.sh.frets.forEach(function(f,j){moves.push({s:p.sh.strings[j],f1:f,f2:n.sh.frets[j]});if(n.sh.frets[j]!==f)ghost.push({s:n.sh.strings[j],f:n.sh.frets[j],c:clsOf(n.sh.toks[j]),label:lab(n.cs,n.sh.toks[j])});});
-  renderNeck($("c-drill"),{from:from,to:to,solid:shapeDots(p.sh,p.cs),ghost:ghost,moves:moves,active:p.sh.strings});
+  var fullTo=Math.max(15,to);
+  renderNeck($("c-drill"),{from:0,to:fullTo,solid:shapeDots(p.sh,p.cs),ghost:ghost,moves:moves,active:p.sh.strings});
+  scrollNeckTo($("c-drill"),(mn+mx)/2,fullTo);
   var ch=$("c-chips");ch.innerHTML="";
   P.forEach(function(it,idx){var b=document.createElement("button");b.type="button";b.textContent=it.cs.label+" /"+degLabel(it.sh.bass);if(idx===cDrill.i){b.className="cur";b.setAttribute("aria-current","step");}
     b.addEventListener("click",function(){cDrill.i=idx;renderChordDrill();});ch.appendChild(b);});
@@ -672,7 +694,7 @@ function makeStepper(px,host,rateFn){
   var h=$(host);
   h.innerHTML='<h2>Drill</h2><div class="row"><button type="button" id="'+px+'-prev">&larr; Previous</button><button type="button" id="'+px+'-play" class="primary">Start click</button><button type="button" id="'+px+'-next">Next &rarr;</button></div>'+
    '<div class="head"><div><div class="big" id="'+px+'-now"></div><div class="mid" id="'+px+'-sub"></div></div><div class="nextc">Next<strong id="'+px+'-nx"></strong></div></div>'+
-   '<div class="neck-wrap"><svg class="win" id="'+px+'-neck" role="img" aria-label="Current note"></svg></div><div class="strip" id="'+px+'-strip" aria-label="Upcoming notes"></div>';
+   '<div class="neck-wrap"><svg class="full" id="'+px+'-neck" role="img" aria-label="Current note"></svg></div><div class="strip" id="'+px+'-strip" aria-label="Upcoming notes"></div>';
   var st={ev:[],i:0};
   st.set=function(ev){st.ev=ev;st.i=0;st.render();};
   st.render=function(){
@@ -680,7 +702,8 @@ function makeStepper(px,host,rateFn){
     var e=E[st.i],n=E[(st.i+1)%E.length];
     $(px+"-now").textContent=e.big;$(px+"-sub").textContent=e.sub;$(px+"-nx").textContent=n.big===e.big?n.label:n.big+" "+n.label;
     var ghost=n.pool===e.pool&&!(n.s===e.s&&n.f===e.f)?[{s:n.s,f:n.f,c:n.c,label:n.label}]:[];
-    renderNeck($(px+"-neck"),{from:e.win[0],to:e.win[1],faint:e.pool,solid:[{s:e.s,f:e.f,c:e.c,label:e.label,big:true}],ghost:ghost,band:e.band});
+    renderNeck($(px+"-neck"),{from:0,to:Math.max(15,e.win[1]),faint:e.pool,solid:[{s:e.s,f:e.f,c:e.c,label:e.label,big:true}],ghost:ghost,band:e.band});
+    scrollNeckTo($(px+"-neck"),e.f,Math.max(15,e.win[1]));
     var strip=$(px+"-strip");strip.innerHTML="";var a=Math.max(0,st.i-8),b=Math.min(E.length,a+40);
     for(var k=a;k<b;k++){var sp=document.createElement("span");sp.textContent=E[k].label;if(E[k].gs)sp.className="gs";if(k===st.i)sp.className+=" cur";strip.appendChild(sp);}
   };
@@ -788,9 +811,22 @@ var bpm=$("bpm");bpm.value=state.bpm;
 function setBpm(v){v=Math.max(30,Math.min(240,Math.round(+v)||60));state.bpm=v;bpm.value=v;save();}
 bpm.addEventListener("change",function(){setBpm(bpm.value);});
 $("bpm-dn").addEventListener("click",function(){setBpm(state.bpm-5);});$("bpm-up").addEventListener("click",function(){setBpm(state.bpm+5);});
-var labs=$("labels");labs.value=state.label;labs.addEventListener("change",function(){state.label=labs.value;save();renderAll();});
+var labs=$("labels");labs.value=state.label;
+var cvol=$("click-vol"),ctone=$("click-tone");cvol.value=state.clickVol;ctone.value=state.clickTone;$("click-vol-v").textContent=state.clickVol;
+cvol.addEventListener("input",function(){state.clickVol=+cvol.value;$("click-vol-v").textContent=cvol.value;save();});
+ctone.addEventListener("change",function(){state.clickTone=ctone.value;save();});
+$("click-btn").addEventListener("click",function(){var p=$("click-set");p.hidden=!p.hidden;this.setAttribute("aria-expanded",String(!p.hidden));});
+$("click-test").addEventListener("click",function(){try{metro.ctx=metro.ctx||new (window.AudioContext||window.webkitAudioContext)();if(metro.ctx.resume)metro.ctx.resume();
+  var t=metro.ctx.currentTime+.05,spt=60/state.bpm;for(var i=0;i<4;i++)metroClick(t+i*spt,i===0?2:1);}catch(e){}});
+/* Practice Coach: report the active mode and practice activity to the app (for time stats) */
+function tellParent(type){try{if(window.parent!==window)window.parent.postMessage({source:"fretboard-lab",type:type,mode:state.mode,metro:metro.on},location.origin);}catch(e){}}
+var lastPing=0;function ping(){var n=Date.now();if(n-lastPing>5000){lastPing=n;tellParent("active");}}
+document.addEventListener("pointerdown",ping,true);document.addEventListener("keydown",ping,true);
+setInterval(function(){if(metro.on)tellParent("active");},10000);labs.addEventListener("change",function(){state.label=labs.value;save();renderAll();});
 var MODES=["chords","arpeggios","scales","technique"];
-function showMode(m){if(MODES.indexOf(m)<0)m="chords";if(metro.on)metroStop();state.mode=m;save();
+function showMode(m){if(MODES.indexOf(m)<0)m="chords";if(metro.on)metroStop();state.mode=m;save();if(typeof tellParent==="function")tellParent("mode");
+  /* Practice Coach: drills rendered while hidden couldn't scroll to the current note; re-center once visible */
+  setTimeout(function(){try{if(m==="arpeggios")aStep.render();else if(m==="scales")sStep.render();else if(m==="technique")tStep.render();else renderChordDrill();}catch(e){}},0);
   MODES.forEach(function(x){$("mode-"+x).hidden=x!==m;$("tab-"+x).setAttribute("aria-selected",x===m?"true":"false");});
   if(location.hash!=="#"+m){try{history.replaceState(null,"","#"+m);}catch(e){}}}
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){showMode(b.getAttribute("data-mode"));});});

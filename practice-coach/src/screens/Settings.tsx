@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { BLOCKS, blockLength } from '../content/blocks'
 import { toast } from '../components/Toast'
+import { CLICK_TONES, getClick, setClick, testClick } from '../lib/click'
 import { formatLong, isValidKey, todayKey } from '../lib/dates'
 import { planPosition, startDateFor } from '../lib/plan'
 import {
@@ -23,6 +24,11 @@ export function Settings() {
   const [pinBlock, setPinBlock] = useState(s.override?.block ?? pos.block)
   const [pinWeek, setPinWeek] = useState(s.override?.week ?? pos.week)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [click, setClickState] = useState(getClick)
+  const changeClick = (patch: Partial<typeof click>) => {
+    setClick(patch)
+    setClickState((c) => ({ ...c, ...patch }))
+  }
 
   function doExport() {
     const blob = new Blob([JSON.stringify(buildBackup(), null, 2)], { type: 'application/json' })
@@ -43,6 +49,7 @@ export function Settings() {
     if (!f) return
     try {
       const msg = importBackup(await f.text())
+      setClickState(getClick())
       toast(msg, 3200)
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Import failed', 4000)
@@ -174,6 +181,39 @@ export function Settings() {
       </section>
 
       <section className="card">
+        <h2>Metronome click</h2>
+        <p className="small muted">Used by Fretboard Lab's click. You can also change it in the Lab under "Click".</p>
+        <div className="field">
+          <label htmlFor="click-vol">
+            Volume <span className="muted">· {click.vol}%</span>
+          </label>
+          <input
+            id="click-vol"
+            className="range"
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={click.vol}
+            onChange={(e) => changeClick({ vol: Number(e.target.value) })}
+          />
+        </div>
+        <div className="field">
+          <span className="label">Tone</span>
+          <div className="seg full" role="group" aria-label="Click tone">
+            {CLICK_TONES.map((t) => (
+              <button key={t.id} aria-pressed={click.tone === t.id} onClick={() => changeClick({ tone: t.id })}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button className="btn" onClick={() => testClick()}>
+          Test click
+        </button>
+      </section>
+
+      <section className="card">
         <h2>Share with Dad</h2>
         <div className="field">
           <label htmlFor="dad">Dad's phone number</label>
@@ -233,6 +273,7 @@ export function Settings() {
                 className="btn danger grow"
                 onClick={() => {
                   resetAll()
+                  setClickState(getClick())
                   setConfirmReset(false)
                   setPinBlock(1)
                   setPinWeek(1)

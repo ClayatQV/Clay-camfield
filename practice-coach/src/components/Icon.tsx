@@ -13,6 +13,7 @@ const PATHS: Record<string, string> = {
   share: 'M12 3v13M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6',
   back: 'M15 18l-6-6 6-6',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  fire: 'M12 2.5c.6 3.4 3.1 5 4.6 7.4 1.1 1.7 1.6 3.3 1.6 4.9A6.2 6.2 0 0 1 12 21a6.2 6.2 0 0 1-6.2-6.2c0-2.3 1.1-4.2 2.6-5.6.1 1.9.9 3.2 2.2 3.8-.4-3.6.4-7.2 1.4-10.5z',
   flame: 'M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z',
   snow: 'M12 2v20M4.9 7l14.2 10M4.9 17 19.1 7M9 4l3 2 3-2M9 20l3-2 3 2',
   loop: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
@@ -25,7 +26,7 @@ const PATHS: Record<string, string> = {
 }
 
 export function Icon({ name, size = 22, label }: { name: keyof typeof PATHS | string; size?: number; label?: string }) {
-  const filled = name === 'play' || name === 'pause'
+  const filled = name === 'play' || name === 'pause' || name === 'fire'
   return (
     <svg
       width={size}

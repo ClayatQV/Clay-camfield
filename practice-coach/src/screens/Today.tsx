@@ -4,6 +4,7 @@ import type { PartId, SessionPart } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { Icon } from '../components/Icon'
 import { ShareCard } from '../components/ShareCard'
+import { WeekStrip } from '../components/WeekStrip'
 import { formatClock, formatLong, formatShort } from '../lib/dates'
 import { chime, keepAwake, primeAudio } from '../lib/feedback'
 import { useNow, useStats, useToday } from '../lib/hooks'
@@ -80,11 +81,13 @@ export function Today() {
             {block.title} ›
           </a>
         </div>
-        <a href={href('/progress')} className="pill" style={{ textDecoration: 'none', marginTop: 4 }} aria-label={`Streak ${stats.current} days`}>
-          <Icon name="flame" size={16} />
+        <a href={href('/progress')} className="pill fire" style={{ textDecoration: 'none', marginTop: 4 }} aria-label={`Streak ${stats.current} days`}>
+          <Icon name="fire" size={16} />
           {stats.current}
         </a>
       </header>
+
+      <WeekStrip practiced={(d) => stats.byDay.has(d)} frozen={stats.frozen} today={today} />
 
       {pos.status === 'before' && (
         <div className="card flat small">

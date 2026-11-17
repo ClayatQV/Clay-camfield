@@ -27,6 +27,8 @@ export type Session = {
   week?: number
   /** Short part labels at the time ("Triads (G–B–E)"), for history and sharing. */
   partLabels?: string[]
+  /** Seconds on each part's clock (for stats). Missing on sessions logged before v0.2. */
+  partSeconds?: Record<PartId, number>
   finishedAt: string
 }
 
@@ -53,6 +55,11 @@ export type Draft = {
   note: string
 }
 
+export type LabMode = 'chords' | 'arpeggios' | 'scales' | 'technique'
+export const LAB_MODES: LabMode[] = ['chords', 'arpeggios', 'scales', 'technique']
+/** Active seconds in Fretboard Lab, per day and mode. */
+export type LabTime = Record<DayKey, Partial<Record<LabMode, number>>>
+
 export type LessonState = { status: LessonStatus; youtubeId?: string; decidedAt?: string }
 
 export type AppData = {
@@ -65,6 +72,7 @@ export type AppData = {
   /** Custom moments per lesson (replaces the defaults when present). */
   moments: Record<string, Moment[]>
   draft: Draft | null
+  labTime: LabTime
 }
 
 export const emptyParts = (): Record<PartId, boolean> => ({ triads: false, arps: false, concept: false, application: false })
@@ -86,6 +94,7 @@ export function defaultData(): AppData {
     doneWhen: {},
     moments: {},
     draft: null,
+    labTime: {},
   }
 }
 
@@ -112,6 +121,9 @@ function normSession(v: unknown): Session | null {
     block: typeof v.block === 'number' ? v.block : undefined,
     week: typeof v.week === 'number' ? v.week : undefined,
     partLabels: Array.isArray(v.partLabels) ? v.partLabels.filter((x): x is string => typeof x === 'string') : undefined,
+    partSeconds: isObj(v.partSeconds)
+      ? (Object.fromEntries(PART_IDS.map((p) => [p, Math.max(0, Math.round(Number((v.partSeconds as Record<string, unknown>)[p]) || 0))])) as Record<PartId, number>)
+      : undefined,
     finishedAt: typeof v.finishedAt === 'string' ? v.finishedAt : new Date().toISOString(),
   }
 }
@@ -154,6 +166,17 @@ export function normalize(raw: unknown): AppData {
         .filter(isObj)
         .map((m) => ({ label: String(m.label ?? 'Loop'), a: Number(m.a) || 0, b: Number(m.b) || 0 }))
         .filter((m) => m.b > m.a)
+    }
+  }
+  if (isObj(raw.labTime)) {
+    for (const [day, modes] of Object.entries(raw.labTime)) {
+      if (!isValidKey(day) || !isObj(modes)) continue
+      const row: Partial<Record<LabMode, number>> = {}
+      for (const m of LAB_MODES) {
+        const n = Math.round(Number(modes[m]) || 0)
+        if (n > 0) row[m] = n
+      }
+      if (Object.keys(row).length) d.labTime[day] = row
     }
   }
   if (isObj(raw.draft) && isValidKey(raw.draft.date)) {
