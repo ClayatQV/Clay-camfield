@@ -66,6 +66,10 @@ npx vercel --prod
 
 Or drag and drop: run `npm run build`, then drop the `practice-coach/dist` folder onto https://app.netlify.com/drop.
 
+### GitHub Pages (set up in this repo)
+
+`.github/workflows/deploy-practice-coach.yml` builds and publishes the app on every push to `main` that touches `practice-coach/`. One-time setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**. The site is then at https://clayatqv.github.io/Clay-camfield/ (the Actions tab shows each deploy).
+
 ### Any other static host (GitHub Pages, Cloudflare Pages, S3…)
 
 Run `npm run build` and upload `dist/`. The build uses relative paths, so it also works from a sub-folder.
