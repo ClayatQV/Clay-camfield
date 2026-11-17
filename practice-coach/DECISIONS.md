@@ -27,3 +27,14 @@ Choices made while building v0.1 without stopping to ask. Newest at the bottom o
 - **Streak rules** (`src/lib/streaks.ts`, unit-tested): a day counts with ≥1 session; the streak stays alive until today ends; one freeze per Mon–Sun week auto-covers a single missed day between two practiced days; two misses in a row break it. Frozen days bridge the streak but don't add to its length. If yesterday was missed, the freeze shows as "covering yesterday — practice today".
 - **Share with Dad**: Web Share API first; if unavailable, the `sms:` link (with Dad's number from Settings) and then copy-to-clipboard. "Text Dad" and "Copy" are always available as separate buttons. Uses the `sms:NUMBER?&body=` form, which works on both iOS and Android.
 - **Sessions can be deleted** from Progress (two-tap confirm) to fix mistakes.
+
+## Lessons
+- **The Chase Maddox concept videos are lessons too** (`kind: 'concept'`, approved), so Today's Application part opens them in the same player with speed, A–B loop and moments. They show "Concept video — no bar map" instead of "Analysis coming".
+- **Lessons with several candidate videos** (Sookie Sookie) show a video switcher in the review card; Approve/Reject records which video you picked. The already-rejected paywalled video is listed so it doesn't get re-added. "Undo" puts a lesson back to its original status.
+- **The video stays pinned at the top** of the lesson page (sticky) while you scroll the controls, and is kept mounted across the Watch / Understand / Drill tabs so a bar-map tap can seek it.
+- **A–B loop**: polls `getCurrentTime()` every 50 ms and seeks to A once past B, with a 300 ms cooldown so one wrap counts as one pass. If B is at the very end of the video, the ENDED event closes the loop. Setting B turns the loop on and jumps to A. Changing speed by hand stops the ladder.
+- **Speed ladder** counts passes per speed (0.25 → 0.5 → 0.75 → 1×, N passes each, default 4, stored in Settings and adjustable on the lesson page), then stops at full speed.
+- **Moments are editable**: "Save current A/B here" overwrites a pre-defined loop (for fine-tuning the approximate times), "Save A/B as a new moment" adds one, Reset restores the defaults. Stored per lesson in localStorage.
+- **Drill presets I added** beyond the brief's four: B♭ Lydian dominant and A minor pentatonic for Kid Charlemagne; F minor pentatonic / F blues for Sookie Sookie; major pentatonic for Affirmation; arpeggio/shell presets for the Chase Maddox videos.
+- **Video errors** (embedding disabled 101/150/153, removed 100, offline) show a plain message and an "Open on YouTube" button that starts at the current A point. Offline also offers Retry.
+- **Testing note**: YouTube is blocked in the build sandbox, so the loop and ladder were tested against a stub of the IFrame API (simulated clock and playback rate). Test the real player on your phone.
