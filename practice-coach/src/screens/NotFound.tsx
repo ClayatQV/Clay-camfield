@@ -7,7 +7,7 @@ export function NotFound() {
         <h2>Nothing here</h2>
         <p>That page doesn't exist.</p>
         <a className="btn primary" href={href('/')}>
-          Go to Today
+          Go home
         </a>
       </div>
     </div>

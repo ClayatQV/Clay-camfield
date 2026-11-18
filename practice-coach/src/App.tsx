@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { TabBar } from './components/TabBar'
+import { Shell } from './components/Shell'
 import { ToastHost } from './components/Toast'
 import { useRoute } from './lib/router'
 import { applyTheme } from './lib/theme'
 import { useData } from './store/store'
 import { Today } from './screens/Today'
+import { Home } from './screens/Home'
 import { Progress } from './screens/Progress'
 import { Plan } from './screens/Plan'
 import { Lessons } from './screens/Lessons'
@@ -44,6 +45,9 @@ export function App() {
   let screen
   switch (first) {
     case undefined:
+      screen = <Home />
+      break
+    case 'practice':
       screen = <Today />
       break
     case 'progress':
@@ -68,10 +72,11 @@ export function App() {
       screen = <NotFound />
   }
 
+  const fullscreen = first === 'assessment' && second !== 'results'
   return (
-    <div className="app">
-      <main>{screen}</main>
-      {!(first === 'assessment' && second !== 'results') && <TabBar path={route.path} />}
+    <div className={fullscreen ? 'app fullscreen' : 'app'}>
+      {!fullscreen && <Shell path={route.path} />}
+      <main className="main">{screen}</main>
       <ToastHost />
       {updateReady && (
         <div className="banner" role="status">

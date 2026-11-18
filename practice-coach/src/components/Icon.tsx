@@ -1,5 +1,8 @@
 /** Inline stroke icons (no icon font, works offline). */
 const PATHS: Record<string, string> = {
+  home: 'M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  vision: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
   today: 'M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   progress: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   plan: 'M4 5h16M4 12h16M4 19h10M18 17l2 2 3-4',

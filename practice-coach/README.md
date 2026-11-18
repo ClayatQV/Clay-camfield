@@ -1,8 +1,10 @@
 # Practice Coach
 
-Clay's daily guitar practice app (prototype v0.1). Mobile-first, installable, works offline, no accounts, no backend, no tracking.
+Clay's daily guitar practice app (prototype v0.1). Desktop-first and also works on a phone, installable, works offline, no accounts, no backend, no tracking.
 
-- **Today** — this week's 4-part session (Triads · Arpeggios · Concept · Application), 30/60-minute versions, timers, done checks, finish + log, **Share with Dad**.
+- **Home** — your vision and progress toward your signature songs, jump back into today's session, song of the day, a lesson pick and what to listen to this week.
+- **Assessment** — about 10 minutes: your vision in your own words, the songs you want to play, what you want to learn, then a placement of your genres and skills. Finishing it builds your plan.
+- **Practice** — this week's 4-part session (Triads · Arpeggios · Concept · Application), 30/60-minute versions, timers, done checks, finish + log, **Share with Dad**.
 - **Progress** — current/longest streak, total and weekly minutes, practice heatmap, weekly streak freeze, session history.
 - **Plan** — player profile, the 6-month block sequence, Block 1 week by week with "done when" checks, repertoire bank.
 - **Lessons** — tab-on-screen videos with speed control, A–B loop, saved moments, speed ladder, a tappable bar-by-bar analysis and Fretboard Lab drills. Candidates get approved or rejected after you check them.

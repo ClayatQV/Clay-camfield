@@ -150,7 +150,7 @@ export function Today() {
         </p>
       )}
 
-      <div className="stack" style={stale ? { opacity: 0.5, pointerEvents: 'none' } : undefined} aria-disabled={!!stale}>
+      <div className="stack parts-grid" style={stale ? { opacity: 0.5, pointerEvents: 'none' } : undefined} aria-disabled={!!stale}>
         {parts.map((p, i) => (
           <PartCard
             key={p.id}

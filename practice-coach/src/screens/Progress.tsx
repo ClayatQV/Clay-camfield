@@ -84,8 +84,8 @@ export function Progress() {
           <div className="card empty">
             <Icon name="progress" size={32} />
             <p>No sessions yet. Finish today's session and it shows up here.</p>
-            <a className="btn primary" href={href('/')}>
-              Go to Today
+            <a className="btn primary" href={href('/practice')}>
+              Start practicing
             </a>
           </div>
         ) : (

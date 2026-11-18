@@ -79,7 +79,7 @@ export function Lessons({ query }: { query: URLSearchParams }) {
           )}
         </div>
       ) : (
-        <div className="stack">
+        <div className="stack lesson-card-grid">
           {shown.map((l) => (
             <LessonCard key={l.id} l={l} review={status === 'review'} />
           ))}

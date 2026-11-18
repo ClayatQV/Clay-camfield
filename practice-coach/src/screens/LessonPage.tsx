@@ -191,7 +191,8 @@ function Player({
   }
 
   return (
-    <>
+    <div className="lesson-grid">
+      <div className="lesson-video">
       <div className="video-sticky">
         <div className="video-box">
           <div ref={yt.mountRef} className="video-mount" />
@@ -214,6 +215,8 @@ function Player({
         </div>
       </div>
 
+      </div>
+      <div className="lesson-side">
       <div className="seg full" role="tablist" aria-label="Lesson sections">
         {(['watch', 'understand', 'drill'] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setTab(t)}>
@@ -249,7 +252,8 @@ function Player({
         />
       )}
       {tab === 'drill' && <DrillTab lesson={lesson} />}
-    </>
+      </div>
+    </div>
   )
 }
 

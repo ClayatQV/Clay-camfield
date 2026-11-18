@@ -72,3 +72,18 @@ Choices made while building v0.1 without stopping to ask. Newest at the bottom o
 - **Session minutes in generated plans** follow Clay's example: warm-ups short, transcription about half (30 min = 5/5/5/15, 60 min = 8/8/14/30).
 - **Application offers 3–5 songs every week**, rotating: songs you want to learn, the block's featured tune, songs from your genres you know but can't play yet, and one discovery pick from another genre. Each links to a YouTube search for a transcription with tab on screen; lesson videos become an "extra resource".
 - **One plan shape for everything** (`src/plan/model.ts`): the original plan is materialized into the same JSON as a generated one, so Today, Plan and Settings have one code path. Done-when checks for generated plans are keyed by plan id.
+
+## Vision first (v0.4, from Clay's feedback: "if I don't have the vision for why, it all falls apart")
+- **The assessment opens with the vision, before anything is measured** (Clay wasn't sure; dream first, then measure against it, is easy to flip in `engine.ts`). In the player's own words: "What would you love to be able to play comfortably and fluidly?", where they see themselves playing, up to 3 signature songs or solos, and what about each they want to play (the fast runs, lines through the changes, melody and chords together…).
+- **The goals list that mirrored Clay's gaps is gone.** It's replaced by a general "What do you want to learn?" list in plain words (solo better, play the songs I love, rhythm and groove, fingerstyle, write my own songs, get gig-ready…) plus "which excites you most".
+- **Plans are built toward the vision, about 70/30 wants vs. needs.** Blocks are milestones toward the signature pieces: the skills inside the music they named, with stepping stones when a skill isn't reachable yet (e.g. voicings before chord-melody). Each new block for a piece starts from a different part of it. Remaining blocks follow their wants; assessment needs drive the daily warm-ups (about 30% of each session) and fill gaps.
+- **Every block and part has a "why"** in terms of the player's vision. The last block for a piece ends with "Milestone: play it start to finish, record it, compare with week 1". If a signature piece has a lesson in the library (Kid Charlemagne), its block links that lesson and loops one of its moments each week.
+- **"Not feeling this block? Swap it"** rebuilds the plan without that block; earlier blocks stay the same.
+- **Seven new blocks** for wants outside Clay's style: learning songs from the record, lead essentials, speed, fingerstyle, writing, gig-ready, reading.
+- **Without AI yet**, the written vision is shown back (results, Home, Plan) as the "why"; the plan is built from the structured answers (pieces, what about them, wants). An AI planner can later read the written vision too.
+
+## Desktop-first layout (v0.4)
+- **Left sidebar on desktop (≥960 px); on phones a top bar with a menu that slides in from the left.** The bottom tab bar is gone (Clay asked for a left-side nav with a drop-down).
+- **Home is a dashboard (`#/`):** the vision with progress toward each signature piece, "jump back in" to today's session, this week's drills, streak, song of the day, our pick (a lesson), and listen this week. Today's session moved to **Practice (`#/practice`)**.
+- **The running timer shows on every page** (sidebar on desktop, top bar on phones) and links back to Practice.
+- **Lesson page on desktop:** big video on the left (sticky), Watch / Understand / Drill on the right. Practice parts and lesson cards go two to a row on wide screens.
