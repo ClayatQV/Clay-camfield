@@ -245,6 +245,7 @@ function PartCard(props: {
       </div>
       <h3>{part.focus}</h3>
       <p className="small muted">{part.instruction}</p>
+      {part.why && <p className="why">Why: {part.why}</p>}
 
       <div className="part-controls">
         <button className={`btn timer${running ? ' amber' : ''}`} onClick={props.onToggleRun} aria-pressed={running} aria-label={running ? 'Pause timer' : 'Start timer'}>
@@ -264,12 +265,12 @@ function PartCard(props: {
         <div className="options">
           <span className="label">Pick one</span>
           {part.options.map((o) => (
-            <a key={o.label} className={`option-row ${o.kind}`} href={o.url} target="_blank" rel="noreferrer">
+            <a key={o.label} className={`option-row ${o.kind}`} href={o.url} {...(o.url.startsWith('#') ? {} : { target: '_blank', rel: 'noreferrer' })}>
               <span className="grow">
                 <strong>{o.label}</strong>
                 {o.sub && <span className="small muted"> · {o.sub}</span>}
               </span>
-              <Icon name="external" size={18} label="Find a transcription" />
+              <Icon name={o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
             </a>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import { startAssessment } from '../assessment/actions'
 import type { AssessmentResult, LadderResult } from '../assessment/scoring'
 import { SKILL_AREAS } from '../assessment/skills'
+import { ELEMENT_OPTS, WANT_OPTS } from '../assessment/vision'
 import { Icon } from '../components/Icon'
 import { formatShort, toKey } from '../lib/dates'
 import { href, navigate } from '../lib/router'
@@ -37,6 +38,24 @@ export function AssessmentResults({ id }: { id?: string }) {
       <a className="back-link" href={href('/plan')}>
         <Icon name="back" size={20} /> Plan
       </a>
+
+      {r.vision?.statement && (
+        <section className="card vision-card">
+          <span className="eyebrow">Your vision</span>
+          <blockquote className="vision-quote">“{r.vision.statement}”</blockquote>
+          {r.vision.pieces.length > 0 && (
+            <div className="stack-sm">
+              <span className="label">Working toward</span>
+              {r.vision.pieces.map((p) => (
+                <div key={p.text}>
+                  <strong>{p.text}</strong>
+                  {p.elements.length > 0 && <div className="small muted">{p.elements.map((e) => ELEMENT_OPTS.find((o) => o.id === e)?.label ?? e).join(' · ')}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="card result-hero">
         <span className="eyebrow">Your player type · {formatShort(toKey(new Date(r.takenAt)))}</span>
@@ -192,8 +211,8 @@ function Details({ r }: { r: AssessmentResult }) {
     ['Influences', r.influences.join(', ')],
     ['Want to sound like', r.targets.join(', ')],
     ['Practice', `${r.goals.minutes} min × ${r.goals.days} days`],
-    ['Goals', r.goals.next.join(', ')],
-    ['Songs to learn', r.goals.songs.join(', ')],
+    ['Wants', (r.vision?.wants ?? []).map((w) => WANT_OPTS.find((o) => o.id === w)?.label ?? w).join(', ')],
+    ['Where', (r.vision?.where ?? []).join(', ')],
   ].filter(([, v]) => v) as [string, string][]
   if (!rows.length) return null
   return (

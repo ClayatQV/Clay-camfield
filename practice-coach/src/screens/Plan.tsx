@@ -7,7 +7,9 @@ import { useToday } from '../lib/hooks'
 import { planPosition } from '../lib/plan'
 import { href } from '../lib/router'
 import { activePlan, doneKey, type ActivePlan } from '../plan/model'
-import { restorePreviousPlan } from '../plan/actions'
+import { restorePreviousPlan, swapBlock } from '../plan/actions'
+import { toast } from '../components/Toast'
+import { useState } from 'react'
 import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
@@ -75,7 +77,8 @@ function PlanHome({ plan }: { plan: ActivePlan }) {
                     {pos.source === 'auto' ? ` · from ${formatShort(startDay)}` : ''}
                     {current ? ` · now in week ${pos.week}` : ''}
                   </span>
-                  <span className="small">{b.summary}</span>
+                  {b.towards && <span className="towards">→ {b.towards}</span>}
+                  <span className="small">{b.why ?? b.summary}</span>
                 </div>
                 <span className="muted" aria-hidden>
                   ›
@@ -170,6 +173,16 @@ function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
         <h1>{b.title}</h1>
         <p className="muted">{b.summary}</p>
       </div>
+
+      {b.why && (
+        <section className="card why-card">
+          {b.towards && <span className="eyebrow">Toward “{b.towards}”</span>}
+          <p>
+            <strong>Why this block:</strong> {b.why}
+          </p>
+          {plan.source === 'assessment' && b.focusId !== 'together' && <SwapBlock n={n} />}
+        </section>
+      )}
 
       {b.daily && (
         <section className="card">
@@ -314,6 +327,36 @@ function WeekRow({ label, text, link, lesson }: { label: string; text: string; l
           {link ? 'Open in Lab ›' : 'Open lesson ›'}
         </a>
       )}
+    </div>
+  )
+}
+
+function SwapBlock({ n }: { n: number }) {
+  const [asking, setAsking] = useState(false)
+  if (!asking) {
+    return (
+      <button className="btn sm ghost" onClick={() => setAsking(true)}>
+        Not feeling this block? Swap it
+      </button>
+    )
+  }
+  return (
+    <div className="stack-sm">
+      <p className="small muted">You'll get a different block here, picked from your vision and wants. Blocks before it stay the same.</p>
+      <div className="row">
+        <button className="btn sm" onClick={() => setAsking(false)}>
+          Keep it
+        </button>
+        <button
+          className="btn sm primary"
+          onClick={() => {
+            if (swapBlock(n)) toast('Swapped — here’s your new block')
+            setAsking(false)
+          }}
+        >
+          Swap this block
+        </button>
+      </div>
     </div>
   )
 }

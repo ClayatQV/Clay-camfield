@@ -51,6 +51,8 @@ export function answerFor(p: Persona, s: Screen): Answers[string] {
       return s.options[0].id
     case 'text':
       return []
+    case 'longtext':
+      return 'I want to play what I love.'
   }
 }
 
@@ -67,6 +69,14 @@ export function simulate(p: Persona): { answers: Answers; screens: number } {
 export const CLAY: Persona = {
   name: 'Clay',
   fixed: {
+    v1: 'Phrase like Louis Armstrong’s trumpet and Stevie’s harmonica over the changes. Every solo should make people cry or give them stank face.',
+    v2: ['gigs', 'recording'],
+    v3: ['Kid Charlemagne solo — Larry Carlton', 'They Can’t Take That Away From Me — Ella & Louis', 'Amazing Grace — Isaiah Sharkey'],
+    'v4:0': ['fastruns', 'outside'],
+    'v4:1': ['changes', 'melody'],
+    'v4:2': ['chordmelody'],
+    w1: ['changes', 'phrasing', 'fretboard'],
+    w2: 'changes',
     s1: ['blues', 'soul', 'jazz'],
     s2: ['funk', 'gospel', 'rock'],
     s3: 'jazz',
@@ -89,7 +99,6 @@ export const CLAY: Persona = {
     x5: 'others',
     x6: 'indie',
     g1: ['comeback', 'growth'],
-    g2: ['changes', 'fretboard', 'jazzvocab'],
     g3: '6m',
     g4: '60',
     g5: '7',
@@ -133,6 +142,12 @@ export const CLAY: Persona = {
 export const NEW_ROCK_PLAYER: Persona = {
   name: 'Beginner rock player',
   fixed: {
+    v1: 'Play the rock songs I grew up on with my friends.',
+    v2: ['friends'],
+    v3: ["Sweet Child O' Mine — Guns N' Roses"],
+    'v4:0': ['riffs', 'licks'],
+    w1: ['songs', 'speed', 'lead'],
+    w2: 'songs',
     s1: ['rock', 'metal', 'pop'],
     s2: [],
     s3: 'deeper',
@@ -143,7 +158,6 @@ export const NEW_ROCK_PLAYER: Persona = {
     x1: 'self',
     x2: 'never',
     g1: ['growth'],
-    g2: ['fretboard', 'speed'],
     g3: '3m',
     g4: '30',
     g5: '5',

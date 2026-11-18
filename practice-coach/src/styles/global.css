@@ -1349,3 +1349,32 @@ input.range {
 .plan-banner {
   border-color: var(--accent);
 }
+
+/* vision */
+textarea.longtext {
+  min-height: 140px;
+  font-size: 17px;
+  line-height: 1.45;
+}
+.vision-card {
+  border-color: var(--amber);
+}
+.vision-quote {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  font-style: italic;
+}
+.why {
+  font-size: 0.86rem;
+  color: var(--amber);
+  font-weight: 600;
+}
+.towards {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+.why-card {
+  border-color: var(--amber);
+}

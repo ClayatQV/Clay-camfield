@@ -6,6 +6,7 @@
 import { BLOCKS } from '../content/blocks'
 import type { BlockWeek, PartId, SessionPart } from '../content/types'
 import { sessionParts } from '../lib/session'
+import type { Vision } from '../assessment/scoring'
 
 export type PlanBlock = {
   n: number
@@ -23,7 +24,13 @@ export type PlanBlock = {
   weekParts: SessionPart[][]
   /** false = no week-by-week detail written (generic warm-ups + focus) */
   detailed: boolean
+  /** the signature piece this block works toward */
+  towards?: string
+  /** one line: why this block, in terms of the player's vision */
+  why?: string
 }
+
+export type Milestone = { piece: string; blocks: number[] }
 
 export type GeneratedPlan = {
   id: string
@@ -33,6 +40,10 @@ export type GeneratedPlan = {
   title: string
   summary: string
   blocks: PlanBlock[]
+  vision?: Vision
+  milestones?: Milestone[]
+  /** focus ids the player swapped out ("not feeling this block") */
+  rejected?: string[]
 }
 
 export type ActivePlan = {
@@ -43,6 +54,8 @@ export type ActivePlan = {
   createdAt?: string
   blocks: PlanBlock[]
   totalWeeks: number
+  vision?: Vision
+  milestones?: Milestone[]
 }
 
 let original: ActivePlan | null = null
@@ -89,6 +102,8 @@ export function activePlan(data: { plan: GeneratedPlan | null }): ActivePlan {
     createdAt: g.createdAt,
     blocks: g.blocks,
     totalWeeks: g.blocks[g.blocks.length - 1].weeks[1],
+    vision: g.vision,
+    milestones: g.milestones,
   }
 }
 

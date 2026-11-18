@@ -127,7 +127,9 @@ function Answer({ screen: s, prior }: { screen: Screen; prior: AnswerValue | nul
     case 'grid':
       return <Grid s={s} prior={prior && typeof prior === 'object' && !Array.isArray(prior) ? prior : {}} />
     case 'text':
-      return <TextList s={s} />
+      return <TextList s={s} prior={Array.isArray(prior) ? prior : []} />
+    case 'longtext':
+      return <LongText s={s} prior={typeof prior === 'string' ? prior : ''} />
   }
 }
 
@@ -227,8 +229,32 @@ function Grid({ s, prior }: { s: Extract<Screen, { kind: 'grid' }>; prior: Recor
   )
 }
 
-function TextList({ s }: { s: Extract<Screen, { kind: 'text' }> }) {
-  const [vals, setVals] = useState<string[]>(Array.from({ length: s.max }, () => ''))
+function LongText({ s, prior }: { s: Extract<Screen, { kind: 'longtext' }>; prior: string }) {
+  const [val, setVal] = useState(prior)
+  return (
+    <div className="stack">
+      <textarea className="input longtext" rows={5} placeholder={s.placeholder} value={val} onChange={(e) => setVal(e.target.value)} />
+      {s.examples && !val && (
+        <div className="stack-sm">
+          <span className="small muted">Need a spark? Tap one to start from it:</span>
+          <div className="tap-grid">
+            {s.examples.map((x) => (
+              <button key={x} className="tap" onClick={() => setVal(x)}>
+                {x}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <button className="btn primary block big" disabled={!val.trim()} onClick={() => answer(s.id, val.trim())}>
+        Continue
+      </button>
+    </div>
+  )
+}
+
+function TextList({ s, prior }: { s: Extract<Screen, { kind: 'text' }>; prior: string[] }) {
+  const [vals, setVals] = useState<string[]>(Array.from({ length: s.max }, (_, i) => prior[i] ?? ''))
   return (
     <div className="stack">
       {vals.map((v, i) => (
@@ -242,7 +268,7 @@ function TextList({ s }: { s: Extract<Screen, { kind: 'text' }> }) {
         />
       ))}
       <button className="btn primary block big" onClick={() => answer(s.id, vals.map((x) => x.trim()).filter(Boolean))}>
-        {vals.some((x) => x.trim()) ? 'Done' : 'No songs right now'}
+        {vals.some((x) => x.trim()) ? 'Done' : 'Skip for now'}
       </button>
     </div>
   )

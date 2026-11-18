@@ -7,6 +7,7 @@
 import { GENRE_OPTIONS, GENRE_MODULES, moduleFor, slug } from './genres'
 import { EXPERIENCE, GOALS, READING, ROLE_OPTS, SAME_LICKS, SPEED, TECHNIQUE, TIMING, VOCAB } from './general'
 import { FOLLOWUP_PROMPT, SKILL_AREAS } from './skills'
+import { ELEMENT_OPTS, WANT_OPTS, WHERE_OPTS } from './vision'
 import type { AnswerValue, Answers, AppliedItem, GenreModule, Ladder, Opt, Screen, SectionId } from './types'
 
 export type Depth = 'listen' | 'standard' | 'full'
@@ -126,6 +127,44 @@ export function* walk(ans: Answers): Walk {
     kind: 'welcome',
     prompt: 'Let’s find out exactly where you are.',
     help: 'About 10 minutes of quick taps. There are no wrong answers — except a few quick checks. Answer honestly and your plan will fit you.',
+  }
+
+  /* ---- vision: where you want to be, before anything is measured ---- */
+  yield {
+    id: 'v1',
+    section: 'vision',
+    kind: 'longtext',
+    prompt: 'What would you love to be able to play comfortably and fluidly?',
+    help: 'In your own words: what would make you happy as a player? This becomes the “why” behind your whole plan.',
+    placeholder: 'e.g. Solo over jazz standards with the feel of a soul singer, and play a chord-melody ballad at church.',
+    examples: ['Jam at a blues night without freezing up', 'Play the solos from my favorite records', 'Lead worship confidently every Sunday', 'Record a solo I’m proud of'],
+  }
+  yield { id: 'v2', section: 'vision', kind: 'multi', prompt: 'Where do you see yourself playing it?', noneLabel: 'Skip', options: WHERE_OPTS }
+  yield {
+    id: 'v3',
+    section: 'vision',
+    kind: 'text',
+    max: 3,
+    prompt: 'Name up to 3 songs or solos you’d love to be able to play.',
+    help: 'The music that would make you feel you’d arrived. Your plan works toward these.',
+    placeholder: 'Song or solo — artist',
+  }
+  const pieces = asList(ans['v3']).filter(Boolean).slice(0, 3)
+  for (let i = 0; i < pieces.length; i++) {
+    yield {
+      id: `v4:${i}`,
+      section: 'vision',
+      kind: 'multi',
+      max: 4,
+      eyebrow: pieces[i],
+      prompt: `What about “${pieces[i].split(/\s+[—–-]\s+/)[0]}” do you want to be able to play?`,
+      options: ELEMENT_OPTS,
+    }
+  }
+  yield { id: 'w1', section: 'vision', kind: 'multi', max: 3, prompt: 'What else do you want to learn? Pick up to 3.', noneLabel: 'That covers it', options: WANT_OPTS }
+  const wants = asList(ans['w1'])
+  if (wants.length >= 2) {
+    yield { id: 'w2', section: 'vision', kind: 'one', prompt: 'Which one excites you most right now?', options: WANT_OPTS.filter((w) => wants.includes(w.id)) }
   }
 
   /* ---- style ---- */
@@ -295,7 +334,7 @@ function estimateTotal(ans: Answers, answered: number): number {
   const genres = plans.length
     ? plans.reduce((s, p) => s + (p.index === 0 ? (p.depth === 'full' ? 14 : p.depth === 'standard' ? 8 : 3) : p.depth === 'listen' ? 3 : 6), 0)
     : nGenres * 7
-  const fixed = 1 + 4 + 2 + SKILL_AREAS.length * 5 + 6 + EXPERIENCE.length + GOALS.length
+  const fixed = 1 + 6 + Math.min(3, asList(ans['v3']).length) + 4 + 2 + SKILL_AREAS.length * 5 + 6 + EXPERIENCE.length + GOALS.length
   return Math.max(answered + 1, fixed + genres)
 }
 

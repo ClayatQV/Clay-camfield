@@ -187,21 +187,6 @@ export const EXPERIENCE: Screen[] = [
   },
 ]
 
-export const GOAL_OPTS = o([
-  ['changes', 'Playing over changes'],
-  ['fretboard', 'Knowing the fretboard'],
-  ['jazzvocab', 'Jazz vocabulary'],
-  ['chordmelody', 'Chord-melody'],
-  ['voicings', 'Chord voicings'],
-  ['speed', 'Speed and technique'],
-  ['groove', 'Rhythm and groove'],
-  ['theory', 'Theory'],
-  ['ear', 'Ear training'],
-  ['phrasing', 'Phrasing and feel'],
-  ['songwriting', 'Songwriting'],
-  ['reading', 'Reading'],
-])
-
 export const GOALS: Screen[] = [
   {
     id: 'g1',
@@ -219,7 +204,6 @@ export const GOALS: Screen[] = [
       ['teaching', 'Teaching'],
     ]),
   },
-  { id: 'g2', section: 'goals', kind: 'multi', max: 3, prompt: 'What do you want to get better at next? Pick up to 3.', options: GOAL_OPTS },
   {
     id: 'g3',
     section: 'goals',
@@ -273,7 +257,6 @@ export const GOALS: Screen[] = [
       ['headphones', 'Headphone amp'],
     ]),
   },
-  { id: 'g7', section: 'goals', kind: 'text', max: 3, prompt: 'Any songs you want to learn? (optional)', placeholder: 'Song — artist' },
   {
     id: 'l1',
     section: 'goals',

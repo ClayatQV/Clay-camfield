@@ -22,3 +22,24 @@ export function restorePreviousPlan() {
     return { ...x, plan: p.plan, previousPlan: null, settings: { ...x.settings, planStart: p.planStart, override: p.override } }
   })
 }
+
+/**
+ * "Not feeling this block?" — rebuild the plan without that block's focus.
+ * Blocks before it stay the same (the builder is deterministic); the swapped
+ * block and the ones after it get re-chosen.
+ */
+export function swapBlock(blockN: number): boolean {
+  let ok = false
+  update((x) => {
+    const plan = x.plan
+    if (!plan) return x
+    const result = x.assessment.results.find((r) => r.id === plan.resultId)
+    const focusId = plan.blocks[blockN - 1]?.focusId
+    if (!result || !focusId || focusId === 'together') return x
+    const rejected = [...new Set([...(plan.rejected ?? []), focusId])]
+    const next = buildPlan(result, new Date(), rejected)
+    ok = true
+    return { ...x, plan: { ...next, id: plan.id, createdAt: plan.createdAt } }
+  })
+  return ok
+}

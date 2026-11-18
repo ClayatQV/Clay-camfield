@@ -34,6 +34,8 @@ export type LabPreset = {
   bpm?: number
   label?: 'deg' | 'note'
   ex?: string
+  /** technique legato: finger pair, e.g. '13' */
+  pair?: string
 }
 
 export function labQuery(p: LabPreset): string {

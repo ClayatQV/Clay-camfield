@@ -6,10 +6,11 @@
  * the blues template and reviewed before use.
  */
 
-export type SectionId = 'start' | 'style' | 'genres' | 'players' | 'skills' | 'experience' | 'goals'
+export type SectionId = 'start' | 'vision' | 'style' | 'genres' | 'players' | 'skills' | 'experience' | 'goals'
 
 export const SECTION_NAMES: Record<SectionId, string> = {
   start: 'Welcome',
+  vision: 'Your vision',
   style: 'Your style',
   genres: 'Your genres',
   players: 'Your players',
@@ -34,6 +35,8 @@ export type Screen =
   /** Tap once = know it, twice = can play it. */
   | (Base & { kind: 'grid'; items: Opt[]; playLabel: string })
   | (Base & { kind: 'text'; max: number; placeholder?: string })
+  /** Written answer in the player's own words (optional). */
+  | (Base & { kind: 'longtext'; placeholder?: string; examples?: string[] })
 
 /** yes / no / unsure for Y/N; option id(s) otherwise; grid = id → 1 (know) | 2 (play). */
 export type AnswerValue = string | string[] | Record<string, number>

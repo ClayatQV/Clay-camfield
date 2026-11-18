@@ -8,6 +8,7 @@ import { asGrid, asList, asOne, checkId, followId, genrePlan, gridId, isYes, run
 import { genreName, slug } from './genres'
 import { SKILL_AREAS } from './skills'
 import type { Answers, Era, GenreArtist, GenreModule, Ladder } from './types'
+import { WANT_OPTS, label as optLabel } from './vision'
 
 export type LadderResult = {
   /** index of the highest rung reached (-1 = none) */
@@ -43,9 +44,21 @@ export type GenreResult = {
 
 export type Adjustment = { area: string; reason: string }
 
+export type SignaturePiece = { text: string; elements: string[] }
+
+export type Vision = {
+  /** in the player's own words */
+  statement: string
+  where: string[]
+  pieces: SignaturePiece[]
+  /** general wants, favorite first */
+  wants: string[]
+}
+
 export type AssessmentResult = {
   id: string
   takenAt: string
+  vision?: Vision
   genres: GenreResult[]
   topGenres: string[]
   otherGenres: string[]
@@ -161,18 +174,19 @@ export function scoreAssessment(ans: Answers, now = new Date()): AssessmentResul
     },
     goals: {
       for: asList(ans['g1']),
-      next: asList(ans['g2']),
+      next: [],
       length: asOne(ans['g3']),
       minutes: Number(asOne(ans['g4']) ?? 30) || 30,
       days: Number(asOne(ans['g5']) ?? 5) || 5,
       setup: asList(ans['g6']),
-      songs: asList(ans['g7']).filter(Boolean),
+      songs: asList(ans['v3']).filter(Boolean).slice(0, 3),
     },
     learning: {
       sources: asList(ans['l1']),
       solos: asOne(ans['l2']),
       routine: ans['l3'] === 'yes' ? true : ans['l3'] === 'no' ? false : null,
     },
+    vision: visionFrom(ans),
     adjustments,
     playerType: '',
     read: [],
@@ -184,6 +198,41 @@ export function scoreAssessment(ans: Answers, now = new Date()): AssessmentResul
   result.listening = listening(result)
   result.read = buildRead(result)
   return result
+}
+
+function visionFrom(ans: Answers): Vision {
+  const pieces = asList(ans['v3']).filter(Boolean).slice(0, 3)
+  const w1 = asList(ans['w1'])
+  const fav = asOne(ans['w2'])
+  return {
+    statement: (asOne(ans['v1']) ?? '').trim(),
+    where: asList(ans['v2']),
+    pieces: pieces.map((text, i) => ({ text, elements: asList(ans[`v4:${i}`]) })),
+    wants: fav && w1.includes(fav) ? [fav, ...w1.filter((w) => w !== fav)] : w1,
+  }
+}
+
+/** Wants (and what you want from your signature pieces) as goal ids for the old goal logic. */
+export function wantIds(r: AssessmentResult): string[] {
+  const v = r.vision
+  if (!v) return r.goals.next
+  const fromPieces = v.pieces.flatMap((p) => p.elements.map((e) => ELEMENT_TO_WANT[e] ?? e))
+  return [...new Set([...v.wants, ...fromPieces])]
+}
+
+const ELEMENT_TO_WANT: Record<string, string> = {
+  fastruns: 'speed',
+  licks: 'lead',
+  bends: 'lead',
+  changes: 'changes',
+  outside: 'changes',
+  chords: 'chords',
+  rhythm: 'groove',
+  riffs: 'songs',
+  chordmelody: 'chordmelody',
+  fingerstyle: 'fingerstyle',
+  melody: 'phrasing',
+  whole: 'songs',
 }
 
 function genreResult(g: GenreModule, index: number, depth: Depth, ans: Answers, adjustments: Adjustment[]): GenreResult {
@@ -235,6 +284,13 @@ function genreResult(g: GenreModule, index: number, depth: Depth, ans: Answers, 
 /* ---------------- interpretation ---------------- */
 
 const GOAL_AREAS: Record<string, string[]> = {
+  solo: ['improv', 'scales'],
+  lead: ['scales', 'improv'],
+  songs: ['ear', 'comping'],
+  chords: ['chords'],
+  fingerstyle: ['comping'],
+  write: ['theory'],
+  gig: ['comping', 'ear'],
   changes: ['improv', 'arps'],
   fretboard: ['fretboard', 'chords'],
   jazzvocab: ['improv', 'scales'],
@@ -270,7 +326,7 @@ export function playerType(r: AssessmentResult): string {
 const shortGenre = (id: string) => (id === 'soul' ? 'Soul' : genreName(id))
 
 function biggestUnlock(r: AssessmentResult): AssessmentResult['unlock'] {
-  const goalAreas = new Set(r.goals.next.flatMap((g) => GOAL_AREAS[g] ?? []))
+  const goalAreas = new Set(wantIds(r).flatMap((g) => GOAL_AREAS[g] ?? []))
   let best: { area: string; score: number } | null = null
   for (const [area, res] of Object.entries(r.skills)) {
     let score = 0
@@ -312,6 +368,12 @@ const names = (xs: GenreArtist[]) => {
 
 export function buildRead(r: AssessmentResult): string[] {
   const out: string[] = []
+  const v = r.vision
+  if (v?.pieces.length) {
+    const p = v.pieces.map((x) => `“${x.text.split(/\s+[—–-]\s+/)[0]}”`)
+    out.push(`Your plan works toward ${p.length > 1 ? `${p.slice(0, -1).join(', ')} and ${p[p.length - 1]}` : p[0]}.`)
+  }
+  if (v?.wants.length) out.push(`You want to work on: ${v.wants.map((w) => optLabel(WANT_OPTS, w).toLowerCase()).join(', ')}. Most of every session goes there.`)
   const s = r.skills
   // Strengths: the two areas furthest up their ladders that you also use.
   const strong = Object.entries(s)

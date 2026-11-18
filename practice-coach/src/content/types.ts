@@ -55,9 +55,11 @@ export type SessionPart = {
   externalLinks?: { label: string; url: string }[]
   /** Several things to choose from (Application: songs from your genres, a discovery pick…). */
   options?: PartOption[]
+  /** One line: why this part matters for the player's vision. */
+  why?: string
 }
 
-export type PartOption = { label: string; sub?: string; url: string; kind: 'song' | 'listen' | 'lesson' | 'discover' }
+export type PartOption = { label: string; sub?: string; url: string; kind: 'song' | 'listen' | 'lesson' | 'discover' | 'goal' }
 
 export type BlockWeek = {
   week: number
