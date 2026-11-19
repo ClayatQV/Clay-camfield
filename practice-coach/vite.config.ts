@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 /**
  * Tiny hand-rolled replacement for a PWA plugin: after the build, list every
@@ -43,9 +44,51 @@ function swPrecache(): Plugin {
   }
 }
 
+/**
+ * Local dev/preview: mount the same API handlers Vercel runs from /api, so the
+ * AI coach works on localhost. Needs ANTHROPIC_API_KEY and APP_PASSCODE in the
+ * environment (e.g. a .env.local file, which git ignores).
+ */
+function apiMount(): Plugin {
+  let root = process.cwd()
+  const mount = (server: { middlewares: { use: (fn: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: () => void) => void) => void } }) => {
+    server.middlewares.use((req, res, next) => {
+      const url = req.url ?? ''
+      if (!url.startsWith('/api/')) return next()
+      const name = url.slice(5).split('?')[0].replace(/[^a-z-]/g, '')
+      void (async () => {
+        try {
+          const file = pathToFileURL(path.join(root, 'api', `${name}.ts`)).href
+          const mod = (await import(file)) as { default: (r: Request) => Promise<Response> }
+          const chunks: Buffer[] = []
+          for await (const c of req) chunks.push(c as Buffer)
+          const headers = new Headers()
+          for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v)
+          const body = chunks.length ? Buffer.concat(chunks) : undefined
+          const r = await mod.default(new Request(`http://localhost${url}`, { method: req.method, headers, body }))
+          res.statusCode = r.status
+          r.headers.forEach((v, k) => res.setHeader(k, v))
+          res.end(Buffer.from(await r.arrayBuffer()))
+        } catch (e) {
+          res.statusCode = 404
+          res.end(JSON.stringify({ error: `No such API route: ${name}`, detail: String(e) }))
+        }
+      })()
+    })
+  }
+  return {
+    name: 'api-mount',
+    configResolved(c) {
+      root = c.root
+    },
+    configureServer: mount,
+    configurePreviewServer: mount,
+  }
+}
+
 export default defineConfig({
   base: './',
-  plugins: [react(), swPrecache()],
+  plugins: [react(), swPrecache(), apiMount()],
   test: {
     environment: 'node',
   },
