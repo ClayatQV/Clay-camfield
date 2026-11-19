@@ -9,6 +9,38 @@ export function AssessmentCard({ dismissible }: { dismissible?: boolean }) {
   const data = useData()
   const { draft, results, dismissedPrompt } = data.assessment
   const last = results[results.length - 1]
+  const ai = data.ai
+  if (ai.interview && !ai.interview.done) {
+    return (
+      <section className="card assess-card">
+        <span className="eyebrow">AI coach assessment</span>
+        <h2>Pick up where you left off</h2>
+        <a className="btn primary block" href={href('/assessment/ai')}>
+          Resume
+        </a>
+      </section>
+    )
+  }
+  if (ai.result) {
+    if (dismissible) return null
+    return (
+      <section className="card">
+        <span className="eyebrow">AI coach assessment{ai.resultAt ? ` · ${formatShort(toKey(new Date(ai.resultAt)))}` : ''}</span>
+        <h2>{ai.result.profile.type}</h2>
+        <div className="row">
+          <a className="btn grow" href={href('/assessment/ai/results')}>
+            See results
+          </a>
+          <a className="btn grow" href={href('/assessment/build')}>
+            Build plan
+          </a>
+          <a className="btn grow ghost" href={href('/assessment')}>
+            Retake
+          </a>
+        </div>
+      </section>
+    )
+  }
   if (dismissible && (last || dismissedPrompt) && !draft) return null
 
   if (draft && draft.order.length > 0) {
@@ -20,7 +52,7 @@ export function AssessmentCard({ dismissible }: { dismissible?: boolean }) {
         <p className="small muted">
           {answered} answered · about {Math.max(1, Math.round(((estimate - answered) * 5) / 60))} min left
         </p>
-        <a className="btn primary block" href={href('/assessment')}>
+        <a className="btn primary block" href={href('/assessment/tap')}>
           Resume
         </a>
       </section>
@@ -39,7 +71,7 @@ export function AssessmentCard({ dismissible }: { dismissible?: boolean }) {
             className="btn grow"
             onClick={() => {
               startAssessment(true)
-              navigate('/assessment')
+              navigate('/assessment/tap')
             }}
           >
             Retake

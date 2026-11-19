@@ -11,6 +11,7 @@ import { isValidKey, todayKey, type DayKey } from '../lib/dates'
 import type { Answers } from '../assessment/types'
 import type { AssessmentResult } from '../assessment/scoring'
 import type { GeneratedPlan } from '../plan/model'
+import type { AiModule, AiResult, AiScreen, BlockId } from '../../api/_lib/schemas'
 
 export const STORAGE_KEY = 'practice-coach'
 export const LAB_STORAGE_KEY = 'fretboard-lab'
@@ -77,6 +78,35 @@ export type AssessmentState = {
 /** What was active before the last plan replacement, so it can be restored. */
 export type PreviousPlan = { plan: GeneratedPlan | null; planStart: DayKey; override: Settings['override'] }
 
+/* ---------------- AI coach ---------------- */
+
+export type AiTurn = { screen: AiScreen; answer: unknown }
+
+export type AiInterview = {
+  startedAt: string
+  block: BlockId
+  turns: AiTurn[]
+  /** fetched screens not yet answered */
+  queue: AiScreen[]
+  /** screens answered in the current block */
+  blockAsked: number
+  notes: string | null
+  summaries: Partial<Record<BlockId, string>>
+  corrections: Partial<Record<BlockId, string>>
+  /** a block summary waiting for "looks right" / a correction */
+  pendingSummary: string | null
+  done: boolean
+}
+
+export type AiState = {
+  passcode: string
+  interview: AiInterview | null
+  result: AiResult | null
+  resultAt: string | null
+  /** the curriculum as the player is shaping it on the Build page */
+  build: { modules: AiModule[]; minutes: number; days: number } | null
+}
+
 export type AppData = {
   version: number
   settings: Settings
@@ -92,6 +122,7 @@ export type AppData = {
   /** null = Clay's original hand-built plan */
   plan: GeneratedPlan | null
   previousPlan: PreviousPlan | null
+  ai: AiState
 }
 
 export const emptyParts = (): Record<PartId, boolean> => ({ triads: false, arps: false, concept: false, application: false })
@@ -117,6 +148,7 @@ export function defaultData(): AppData {
     assessment: { draft: null, results: [], dismissedPrompt: false },
     plan: null,
     previousPlan: null,
+    ai: { passcode: '', interview: null, result: null, resultAt: null, build: null },
   }
 }
 
@@ -222,6 +254,35 @@ export function normalize(raw: unknown): AppData {
       plan: isObj(pp.plan) && Array.isArray(pp.plan.blocks) ? (pp.plan as unknown as GeneratedPlan) : null,
       planStart: pp.planStart as DayKey,
       override: isObj(pp.override) ? { block: Number(pp.override.block) || 1, week: Number(pp.override.week) || 1 } : null,
+    }
+  }
+  if (isObj(raw.ai)) {
+    const a = raw.ai
+    const iv = isObj(a.interview) ? a.interview : null
+    const BLOCKS = ['skills', 'taste', 'vision']
+    d.ai = {
+      passcode: typeof a.passcode === 'string' ? a.passcode : '',
+      interview:
+        iv && Array.isArray(iv.turns) && BLOCKS.includes(iv.block as string)
+          ? {
+              startedAt: String(iv.startedAt ?? ''),
+              block: iv.block as BlockId,
+              turns: iv.turns.filter((t): t is AiTurn => isObj(t) && isObj(t.screen) && typeof t.screen.id === 'string'),
+              queue: Array.isArray(iv.queue) ? (iv.queue.filter((s) => isObj(s) && typeof s.id === 'string') as AiScreen[]) : [],
+              blockAsked: Math.max(0, Number(iv.blockAsked) || 0),
+              notes: typeof iv.notes === 'string' ? iv.notes : null,
+              summaries: isObj(iv.summaries) ? (iv.summaries as AiInterview['summaries']) : {},
+              corrections: isObj(iv.corrections) ? (iv.corrections as AiInterview['corrections']) : {},
+              pendingSummary: typeof iv.pendingSummary === 'string' ? iv.pendingSummary : null,
+              done: !!iv.done,
+            }
+          : null,
+      result: isObj(a.result) && isObj(a.result.profile) && Array.isArray(a.result.modules) ? (a.result as unknown as AiResult) : null,
+      resultAt: typeof a.resultAt === 'string' ? a.resultAt : null,
+      build:
+        isObj(a.build) && Array.isArray(a.build.modules)
+          ? { modules: a.build.modules as AiModule[], minutes: Number(a.build.minutes) || 30, days: Number(a.build.days) || 5 }
+          : null,
     }
   }
   if (isObj(raw.draft) && isValidKey(raw.draft.date)) {

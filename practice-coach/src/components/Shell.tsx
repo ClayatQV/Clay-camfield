@@ -16,7 +16,7 @@ export const NAV: NavItem[] = [
   { to: '/lessons', label: 'Lessons', icon: 'lessons', match: (p) => p.startsWith('/lessons') },
   { to: '/lab', label: 'Fretboard Lab', icon: 'lab', match: (p) => p.startsWith('/lab') },
   { to: '/progress', label: 'Progress', icon: 'progress', match: (p) => p.startsWith('/progress') },
-  { to: '/assessment/results', label: 'Assessment', icon: 'vision', match: (p) => p.startsWith('/assessment') },
+  { to: '/assessment', label: 'Assessment', icon: 'vision', match: (p) => p.startsWith('/assessment') },
   { to: '/settings', label: 'Settings', icon: 'settings', match: (p) => p.startsWith('/settings') },
 ]
 

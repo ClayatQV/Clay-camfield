@@ -2,6 +2,9 @@ import { useRef, useState } from 'react'
 import { activePlan, blockLen } from '../plan/model'
 import { toast } from '../components/Toast'
 import { CLICK_TONES, getClick, setClick, testClick } from '../lib/click'
+import { setPasscode } from '../ai/actions'
+import { verifyPasscode } from '../ai/client'
+import { useAiStatus } from '../ai/hooks'
 import { formatLong, isValidKey, todayKey } from '../lib/dates'
 import { planPosition, startDateFor } from '../lib/plan'
 import {
@@ -215,6 +218,8 @@ export function Settings() {
         </button>
       </section>
 
+      <AiCoachSettings />
+
       <section className="card">
         <h2>Share with Dad</h2>
         <div className="field">
@@ -293,5 +298,53 @@ export function Settings() {
         Practice Coach v0.1 · local-first, no accounts, no tracking
       </p>
     </div>
+  )
+}
+
+function AiCoachSettings() {
+  const data = useData()
+  const st = useAiStatus()
+  const [code, setCode] = useState(data.ai.passcode)
+  const [busy, setBusy] = useState(false)
+  return (
+    <section className="card">
+      <h2>AI coach</h2>
+      <p className="small muted">
+        {st.loading
+          ? 'Checking…'
+          : !st.server
+            ? 'Not available on this address. The coach runs on the Vercel version of the app.'
+            : !st.configured
+              ? 'The server is missing its API key or passcode.'
+              : data.ai.passcode
+                ? 'Ready.'
+                : 'Enter the passcode to unlock it.'}
+      </p>
+      <div className="field">
+        <label htmlFor="ai-pc">Passcode</label>
+        <div className="row">
+          <input id="ai-pc" className="input grow" type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} />
+          <button
+            className="btn"
+            disabled={!code.trim() || busy || !st.server}
+            onClick={async () => {
+              setBusy(true)
+              try {
+                await verifyPasscode(code.trim())
+                setPasscode(code)
+                toast('Passcode saved')
+              } catch (e) {
+                toast(e instanceof Error ? e.message : 'Wrong passcode', 3200)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {busy ? 'Checking…' : 'Save'}
+          </button>
+        </div>
+        <p className="small muted">Stored on this device only. It keeps strangers from using the coach on your account.</p>
+      </div>
+    </section>
   )
 }

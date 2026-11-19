@@ -11,6 +11,19 @@ Clay's daily guitar practice app (prototype v0.1). Desktop-first and also works 
 - **Lab** — Fretboard Lab, deep-linked from Today and lessons with presets.
 - **Settings** — plan start date, block/week override, default length, Dad's number, theme, export/import/reset.
 
+## The AI coach
+
+The assessment and curriculum are run by an AI coach (Claude) through small server functions in `api/`. It needs two settings on the server (Vercel → Project → Settings → Environment Variables):
+
+| Variable | What |
+|---|---|
+| `ANTHROPIC_API_KEY` | Your Anthropic API key (console.anthropic.com). Pay-as-you-go; a full assessment plus results costs well under a dollar. |
+| `APP_PASSCODE` | A passcode you choose. The site is public; this keeps strangers from using the coach on your key. You enter it once in the app (Assessment page or Settings). |
+
+Without them the coach is off and the built-in tap assessment still works. The rules the coach follows are in `docs/interviewer-rules.md`.
+
+**Locally:** put the same two variables in `practice-coach/.env.local` (git ignores it), then `npm run dev` or `npm run preview`; the API routes are served at `/api/*` by Vite.
+
 ## Run it locally
 
 Needs Node 20+ (22 recommended).
@@ -68,7 +81,11 @@ npx vercel --prod
 
 Or drag and drop: run `npm run build`, then drop the `practice-coach/dist` folder onto https://app.netlify.com/drop.
 
-### GitHub Pages (set up in this repo)
+### Vercel (the AI coach needs this)
+
+Import the repo at https://vercel.com/new with **Root Directory** = `practice-coach` (framework Vite is auto-detected). Add the two environment variables above, then deploy. Every push to `main` redeploys.
+
+### GitHub Pages (static only — no AI coach)
 
 `.github/workflows/deploy-practice-coach.yml` builds and publishes the app on every push to `main` that touches `practice-coach/`. One-time setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**. The site is then at https://clayatqv.github.io/Clay-camfield/ (the Actions tab shows each deploy).
 

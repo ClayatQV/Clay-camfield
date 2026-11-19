@@ -15,6 +15,10 @@ import { Settings } from './screens/Settings'
 import { NotFound } from './screens/NotFound'
 import { Assessment } from './screens/Assessment'
 import { AssessmentResults } from './screens/AssessmentResults'
+import { AssessmentHub } from './screens/AssessmentHub'
+import { AiAssessment } from './screens/AiAssessment'
+import { AiResults } from './screens/AiResults'
+import { BuildPlan } from './screens/BuildPlan'
 
 export function App() {
   const route = useRoute()
@@ -66,13 +70,28 @@ export function App() {
       screen = <Settings />
       break
     case 'assessment':
-      screen = second === 'results' ? <AssessmentResults id={route.segments[2]} /> : <Assessment />
+      screen =
+        second === 'results' ? (
+          <AssessmentResults id={route.segments[2]} />
+        ) : second === 'tap' ? (
+          <Assessment />
+        ) : second === 'ai' ? (
+          route.segments[2] === 'results' ? (
+            <AiResults />
+          ) : (
+            <AiAssessment />
+          )
+        ) : second === 'build' ? (
+          <BuildPlan />
+        ) : (
+          <AssessmentHub />
+        )
       break
     default:
       screen = <NotFound />
   }
 
-  const fullscreen = first === 'assessment' && second !== 'results'
+  const fullscreen = first === 'assessment' && (second === 'tap' || (second === 'ai' && route.segments[2] !== 'results'))
   return (
     <div className={fullscreen ? 'app fullscreen' : 'app'}>
       {!fullscreen && <Shell path={route.path} />}
