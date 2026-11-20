@@ -129,6 +129,11 @@ export const ResultSchema = z.object({
 })
 export type AiResult = z.infer<typeof ResultSchema>
 
+/** Structured outputs choke on the full result schema ("compiled grammar too large"), so results come in two calls. */
+export const ResultCoreSchema = ResultSchema.omit({ modules: true })
+export type AiResultCore = z.infer<typeof ResultCoreSchema>
+export const ModulesSchema = z.object({ modules: z.array(ModuleSchema).describe('4 to 10 modules in order') })
+
 /* ---------------- request bodies ---------------- */
 
 export const TurnSchema = z.object({

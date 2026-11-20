@@ -4,11 +4,12 @@
  */
 import { ask } from './claude.js'
 import { cleanLabQuery } from './lab-vocab.js'
-import { BLOCK_BUDGET, interviewSystem, interviewUser, moduleSystem, moduleUser, resultsSystem, resultsUser } from './prompts.js'
+import { BLOCK_BUDGET, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
 import {
   InterviewResponseSchema,
   ModuleSchema,
-  ResultSchema,
+  ModulesSchema,
+  ResultCoreSchema,
   type AiModule,
   type AiResult,
   type InterviewRequest,
@@ -57,8 +58,9 @@ function cleanModule(m: AiModule): AiModule {
 }
 
 export async function results(req: ResultsRequest): Promise<AiResult> {
-  const out = await ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultSchema, effort: 'high', maxTokens: 16000 })
-  return { ...out, modules: out.modules.map(cleanModule) }
+  const core = await ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultCoreSchema, effort: 'high', maxTokens: 12000 })
+  const mods = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000 })
+  return { ...core, modules: mods.modules.map(cleanModule) }
 }
 
 export async function module(req: ModuleRequest): Promise<AiModule> {

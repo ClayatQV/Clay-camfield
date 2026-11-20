@@ -92,14 +92,17 @@ export function resultsSystem(): string {
 
 ${PRINCIPLES.split('THE METHOD')[1].split('THE THREE BLOCKS')[0].replace(/^/, 'THE METHOD the interviewer followed')}
 
-WRITE THE RESULT (JSON per schema)
+WRITE THE RESULT (JSON per schema). This call writes everything EXCEPT the modules; a second call writes the curriculum.
 - profile.type: a type in 2–5 words that fits (e.g. "Feel-First Soul Player", "Harmony-Minded Rock Guitarist", "Rising Worship Rhythm Player"). profile.read: 3–7 short, specific, honest sentences: strengths, the biggest know-but-don't-use gap, the single unlock that moves their vision most, and how experience shapes the plan (a rusty pro skips fundamentals they own). Gaps in plain words with the next step ("You know 4 of the 16 blues essentials — start with B.B., Albert and Freddie King."). No flattery. profile.trust: 1 if every quick check was right; lower by ~0.2 per miss.
 - skills: 8–24 entries, only skills that matter for THIS player's genres and vision, each with an honest 0–5 level backed by evidence from the transcript. A missed quick check caps that skill one step lower than claimed. Unverified high claims by a player with low trust sit one step lower.
 - gaps: 2–8, ordered by what unlocks their vision first; "from" = current level, "to" = the level the vision needs.
 - vision: their words; pieces with needs/have/missing in plain skill terms.
 - taste: ranked genres with depth ("deep" ≥12 of ~16 essentials known, "solid" 6–11, "listening first" ≤5); dimension leans from their choices; what inspires them; a listening list of essentials they don't know yet (roots first; include a reason).
-- practice: minutesPerDay and daysPerWeek from their answer.
-- modules: 4–10 in order. Most of the time goes to what they WANT (their pieces and wants); fundamentals they NEED ride along as the two daily warm-ups (about 30% of a session). Each module is 1–3 weeks (short; players can repeat any), named for the music or outcome, with a why in terms of their vision, "towards" = the signature piece when it serves one, two warm-ups on their actual gaps with Lab presets, a concept with a precise instruction, an application with 3–5 real songs/solos to choose from (their named pieces first when relevant; songs from their genres they know but can't play; one discovery pick from a neighboring genre), and 2–3 concrete doneWhen checks. Order foundations before what builds on them. A "listening first" genre gets a short listening-and-learning module. Keep the player inspired: variety, choice, visible wins.
+- practice: minutesPerDay and daysPerWeek from their answer.`
+}
+
+export function modulesSystem(): string {
+  return `You write the recommended curriculum for a guitar player who just finished the Practice Coach assessment. You get their results (profile, skill levels, gaps, vision, taste, practice time) and the transcript. Return JSON per schema: 4–10 modules in order. Most of the time goes to what they WANT (their pieces and wants); fundamentals they NEED ride along as the two daily warm-ups (about 30% of a session). Each module is 1–3 weeks (short; players can repeat any), named for the music or outcome, with a why in terms of their vision, "towards" = the signature piece when it serves one, two warm-ups on their actual gaps with Lab presets, a concept with a precise instruction, an application with 3–5 real songs/solos to choose from (their named pieces first when relevant; songs from their genres they know but can't play; one discovery pick from a neighboring genre), and 2–3 concrete doneWhen checks. Order foundations before what builds on them. A "listening first" genre gets a short listening-and-learning module. Keep the player inspired: variety, choice, visible wins.
 ${LAB_VOCAB_TEXT}`
 }
 
@@ -109,8 +112,12 @@ export function resultsUser(req: { turns: Turn[]; notes: string | null; summarie
   if (req.corrections && Object.keys(req.corrections).length) parts.push('PLAYER CORRECTIONS (these win):\n' + Object.entries(req.corrections).map(([k, v]) => `- ${k}: ${v}`).join('\n'))
   parts.push(`INTERVIEWER NOTES: ${req.notes?.trim() || '(none)'}`)
   parts.push(`TRANSCRIPT:\n${transcript(req.turns)}`)
-  parts.push('Write the result.')
+  parts.push('Write the result (everything except modules).')
   return parts.join('\n\n')
+}
+
+export function modulesUser(req: { turns: Turn[]; core: unknown }): string {
+  return `THE PLAYER'S RESULTS:\n${JSON.stringify(req.core)}\n\nTRANSCRIPT (for songs, artists and wording in their words):\n${transcript(req.turns)}\n\nWrite the modules.`
 }
 
 /* ---------------- one module on request ---------------- */
