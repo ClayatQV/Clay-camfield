@@ -33,6 +33,8 @@ export async function ask<S extends z.ZodType>(opts: {
   schema: S
   effort: Effort
   maxTokens?: number
+  /** Fast mode: ~2.5× output speed at higher per-token price; for long structured results that must beat a function timeout. */
+  fast?: boolean
 }): Promise<z.infer<S>> {
   if (!process.env.ANTHROPIC_API_KEY) throw new AiError(503, 'The AI coach is not set up on the server yet (no API key).')
   const c = getClient()
@@ -46,6 +48,7 @@ export async function ask<S extends z.ZodType>(opts: {
       system: [{ type: 'text', text: opts.system, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: opts.user }],
       output_config: { effort: opts.effort, format: betaZodOutputFormat(opts.schema) },
+      ...(opts.fast ? { speed: 'fast' as const } : {}),
     })
   } catch (e) {
     if (e instanceof Anthropic.AuthenticationError) throw new AiError(502, 'The AI key on the server is missing or invalid.')

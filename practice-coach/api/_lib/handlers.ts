@@ -60,16 +60,16 @@ function cleanModule(m: AiModule): AiModule {
 
 /** Everything except the curriculum (one call, kept under Vercel's time limit). */
 export async function results(req: ResultsRequest): Promise<AiResultCore> {
-  return ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultCoreSchema, effort: 'medium', maxTokens: 12000 })
+  return ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultCoreSchema, effort: 'medium', maxTokens: 12000, fast: true })
 }
 
 /** The curriculum, written from the core results (second call). */
 export async function modules(req: ModulesRequest): Promise<AiModule[]> {
-  const out = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core: req.core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000 })
+  const out = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core: req.core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000, fast: true })
   return out.modules.map(cleanModule)
 }
 
 export async function module(req: ModuleRequest): Promise<AiModule> {
-  const out = await ask({ system: moduleSystem(), user: moduleUser(req), schema: ModuleSchema, effort: 'medium', maxTokens: 4000 })
+  const out = await ask({ system: moduleSystem(), user: moduleUser(req), schema: ModuleSchema, effort: 'medium', maxTokens: 4000, fast: true })
   return cleanModule(out)
 }
