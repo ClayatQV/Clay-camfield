@@ -3,6 +3,8 @@
  * so Practice, Plan and Home need no AI-specific code.
  */
 import type { AiModule, AiResult } from '../../api/_lib/schemas'
+import { findTranscription } from '../../api/_lib/transcriptions'
+import { LESSONS } from '../content/lessons'
 import type { Vision } from '../assessment/scoring'
 import type { BlockWeek, PartOption, SessionPart } from '../content/types'
 import type { GeneratedPlan, Milestone, PlanBlock } from './model'
@@ -17,6 +19,16 @@ function minsFor(part: keyof typeof RATIO, sessionMinutes: number): Mins {
 
 const search = (title: string, artist: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist} guitar transcription tab`.trim())}`
+const recording = (title: string, artist: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist}`.trim())}`
+
+/** Where a module song sends the player: the lesson (tabs on screen, looper) when the library has it; the record for by-ear pieces; else a transcription search. */
+export function songLink(s: { title: string; artist: string; how?: 'transcription' | 'ear' | null }): { url: string; via: 'lesson' | 'ear' | 'search' } {
+  const t = findTranscription(s.title, s.artist)
+  const lesson = t && LESSONS.find((l) => l.id === t.id || l.youtubeId === t.youtubeId)
+  if (lesson) return { url: `#/lessons/${lesson.id}`, via: 'lesson' }
+  if (s.how === 'ear') return { url: recording(s.title, s.artist), via: 'ear' }
+  return { url: search(s.title, s.artist), via: 'search' }
+}
 
 const labUrl = (q: string | null) => (q ? '/lab?' + q : null)
 
@@ -78,12 +90,16 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
       const songs = m.application.songs
       const rot = (w - 1) % Math.max(1, songs.length)
       const ordered = [...songs.slice(rot), ...songs.slice(0, rot)]
-      const options: PartOption[] = ordered.map((s) => ({
-        label: s.title,
-        sub: [s.artist, s.note].filter(Boolean).join(' · ') || undefined,
-        url: search(s.title, s.artist),
-        kind: pieceTitles.includes(s.title.toLowerCase()) ? 'goal' : s.note?.toLowerCase().includes('discover') ? 'discover' : 'song',
-      }))
+      const options: PartOption[] = ordered.map((s) => {
+        const link = songLink(s)
+        const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'by ear from the record · loop it slow' : null
+        return {
+          label: s.title,
+          sub: [s.artist, via, s.note].filter(Boolean).join(' · ') || undefined,
+          url: link.url,
+          kind: pieceTitles.includes(s.title.toLowerCase()) ? 'goal' : s.note?.toLowerCase().includes('discover') ? 'discover' : 'song',
+        }
+      })
       const app: SessionPart = {
         id: 'application',
         title: 'Application',

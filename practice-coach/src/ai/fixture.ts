@@ -20,10 +20,10 @@ export const FIXTURE_MODULES: AiModule[] = [
     application: {
       instruction: 'Pick one and learn it from a video with the tabs on screen; then solo over it using only this week’s idea.',
       songs: [
-        { title: 'Kid Charlemagne solo', artist: 'Larry Carlton', note: 'your goal — lesson with bar map' },
-        { title: 'The Thrill Is Gone', artist: 'B.B. King', note: null },
-        { title: 'Isn’t She Lovely', artist: 'Stevie Wonder', note: null },
-        { title: 'Cissy Strut', artist: 'The Meters', note: 'discovery pick' },
+        { title: 'Kid Charlemagne solo', artist: 'Larry Carlton', note: 'your goal — lesson with bar map', how: null },
+        { title: 'The Thrill Is Gone', artist: 'B.B. King', note: null, how: null },
+        { title: 'Isn’t She Lovely', artist: 'Stevie Wonder', note: null, how: null },
+        { title: 'Cissy Strut', artist: 'The Meters', note: 'discovery pick', how: null },
       ],
     },
     doneWhen: ['Bars 7–9 clean at ♩=98', 'G major pentatonic over Cmaj7 without thinking', 'Spider at 100 bpm clean'],
@@ -43,9 +43,9 @@ export const FIXTURE_MODULES: AiModule[] = [
     application: {
       instruction: 'Melody first, then a chorus using only guide tones and chord tones.',
       songs: [
-        { title: 'They Can’t Take That Away From Me', artist: 'Ella Fitzgerald & Louis Armstrong', note: 'your goal' },
-        { title: 'Autumn Leaves', artist: 'standard', note: null },
-        { title: 'Fly Me to the Moon', artist: 'standard', note: null },
+        { title: 'They Can’t Take That Away From Me', artist: 'Ella Fitzgerald & Louis Armstrong', note: 'your goal', how: null },
+        { title: 'Autumn Leaves', artist: 'standard', note: null, how: null },
+        { title: 'Fly Me to the Moon', artist: 'standard', note: null, how: null },
       ],
     },
     doneWhen: ['Guide tones through a ii–V–I in any key at 80 bpm', 'A full chorus of the tune without a pentatonic box'],
@@ -65,9 +65,9 @@ export const FIXTURE_MODULES: AiModule[] = [
     application: {
       instruction: 'Arrange the first verse.',
       songs: [
-        { title: 'Amazing Grace', artist: 'Isaiah Sharkey', note: 'your goal' },
-        { title: 'Tenderly', artist: 'Ella & Louis', note: null },
-        { title: 'Misty', artist: 'Wes Montgomery', note: 'discovery pick' },
+        { title: 'Amazing Grace', artist: 'Isaiah Sharkey', note: 'your goal', how: null },
+        { title: 'Tenderly', artist: 'Ella & Louis', note: null, how: null },
+        { title: 'Misty', artist: 'Wes Montgomery', note: 'discovery pick', how: null },
       ],
     },
     doneWhen: ['One verse of Amazing Grace as chord-melody', 'Harmonize any melody note with a drop 2 voicing on demand'],
@@ -87,9 +87,9 @@ export const FIXTURE_MODULES: AiModule[] = [
     application: {
       instruction: 'Play the melody you learned along with the record.',
       songs: [
-        { title: 'So What', artist: 'Miles Davis', note: null },
-        { title: 'Four on Six', artist: 'Wes Montgomery', note: null },
-        { title: 'Blue Bossa', artist: 'Kenny Dorham', note: null },
+        { title: 'So What', artist: 'Miles Davis', note: null, how: null },
+        { title: 'Four on Six', artist: 'Wes Montgomery', note: null, how: null },
+        { title: 'Blue Bossa', artist: 'Kenny Dorham', note: null, how: null },
       ],
     },
     doneWhen: ['Three melodies learned by ear', 'Name the players on each record'],

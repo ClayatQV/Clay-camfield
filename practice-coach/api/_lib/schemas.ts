@@ -75,7 +75,17 @@ export const ModuleSchema = z.object({
   application: z.object({
     instruction: z.string(),
     songs: z
-      .array(z.object({ title: z.string(), artist: z.string(), note: z.string().nullable() }))
+      .array(
+        z.object({
+          title: z.string(),
+          artist: z.string(),
+          note: z.string().nullable(),
+          how: z
+            .enum(['transcription', 'ear'])
+            .nullable()
+            .describe('"transcription" when a full tabs/notation-on-screen video almost certainly exists; "ear" for a one-off live/interview performance or obscure track the player learns from the recording with the looper'),
+        }),
+      )
       .describe('3 to 5 real songs/solos to choose from: their named pieces first when relevant, songs from their genres, one discovery pick'),
   }),
   doneWhen: z.array(z.string()).describe('2 or 3 concrete, checkable checks'),

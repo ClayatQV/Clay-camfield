@@ -4,6 +4,7 @@
  * docs/interviewer-rules.md — keep the two in step.
  */
 import { LAB_VOCAB_TEXT } from './lab-vocab.js'
+import { TRANSCRIPTIONS_TEXT } from './transcriptions.js'
 import type { BlockId, Turn } from './schemas.js'
 
 export const BLOCK_BUDGET: Record<BlockId, { screens: number; minutes: number; name: string }> = {
@@ -122,6 +123,7 @@ const MODULE_RULES = `Each module is a focused unit of practice. Default length 
 export function modulesSystem(): string {
   return `You write the recommended curriculum for a guitar player who just finished the Practice Coach assessment. You get their results (profile, skill levels, gaps, vision, taste, practice time) and the transcript. Return JSON per schema: 4–10 modules in order. LEAD WITH WHAT THEY SAID IS INSPIRING THEM RIGHT NOW and want to work on first; fit the gaps around that (most of the time goes to what they WANT; fundamentals they NEED ride along as the daily warm-ups). Order foundations before what builds on them only when something truly can't be started yet. Honor their practice time.
 ${MODULE_RULES}
+${TRANSCRIPTIONS_TEXT}
 ${LAB_VOCAB_TEXT}`
 }
 
@@ -134,6 +136,7 @@ export function modulesUser(req: { turns: Turn[]; core: unknown }): string {
 export function moduleSystem(): string {
   return `You write one practice module for Practice Coach, for a specific player, on request. You get their profile, vision, skill levels, gaps and taste, plus the titles of modules already in their plan. Write a module for what they asked, pitched at their level (not too easy, not over their head). Don't duplicate an existing module.
 ${MODULE_RULES}
+${TRANSCRIPTIONS_TEXT}
 ${LAB_VOCAB_TEXT}`
 }
 
