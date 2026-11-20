@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanLabQuery } from './lab-vocab'
+import { cleanLabQuery } from './lab-vocab.js'
 
 describe('cleanLabQuery', () => {
   it('keeps valid presets and drops unknown values', () => {

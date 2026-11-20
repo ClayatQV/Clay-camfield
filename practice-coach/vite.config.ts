@@ -87,13 +87,15 @@ function apiMount(): Plugin {
       const name = url.slice(5).split('?')[0].replace(/[^a-z-]/g, '')
       void (async () => {
         try {
-          const mod = (await load(name)) as { default: (r: Request) => Promise<Response> }
+          const mod = (await load(name)) as Record<string, (r: Request) => Promise<Response>>
           const chunks: Buffer[] = []
           for await (const c of req) chunks.push(c as Buffer)
           const headers = new Headers()
           for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v)
           const body = chunks.length ? Buffer.concat(chunks) : undefined
-          const r = await mod.default(new Request(`http://localhost${url}`, { method: req.method, headers, body }))
+          const fn = mod[req.method ?? 'GET'] ?? mod.default
+          if (!fn) throw new Error(`no ${req.method} handler`)
+          const r = await fn(new Request(`http://localhost${url}`, { method: req.method, headers, body }))
           res.statusCode = r.status
           r.headers.forEach((v, k) => res.setHeader(k, v))
           res.end(Buffer.from(await r.arrayBuffer()))
