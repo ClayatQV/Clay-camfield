@@ -97,7 +97,7 @@ WRITE THE RESULT (JSON per schema). This call writes everything EXCEPT the modul
 - skills: 8–16 entries (keep evidence to one short clause), only skills that matter for THIS player's genres and vision, each with an honest 0–5 level backed by evidence from the transcript. A missed quick check caps that skill one step lower than claimed. Unverified high claims by a player with low trust sit one step lower.
 - gaps: 2–8, ordered by what unlocks their vision first; "from" = current level, "to" = the level the vision needs.
 - vision: their words; pieces with needs/have/missing in plain skill terms.
-- taste: ranked genres with depth ("deep" ≥12 of ~16 essentials known, "solid" 6–11, "listening first" ≤5); dimension leans from their choices; what inspires them; a listening list of essentials they don't know yet (roots first; include a reason).
+- taste: ranked genres with depth ("deep" ≥12 of ~16 essentials known, "solid" 6–11, "listening first" ≤5, and "not assessed" for a genre whose artists were never shown); dimension leans from their choices; what inspires them; a listening list of essentials they don't know yet (roots first; include a reason).
 - practice: minutesPerDay and daysPerWeek from their answer.`
 }
 

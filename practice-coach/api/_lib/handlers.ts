@@ -51,8 +51,16 @@ export async function interview(req: InterviewRequest): Promise<InterviewRespons
 }
 
 function cleanModule(m: AiModule): AiModule {
+  const seen = new Set<string>()
+  const songs = m.application.songs.filter((s) => {
+    const k = `${s.title}|${s.artist}`.toLowerCase()
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
   return {
     ...m,
+    application: { ...m.application, songs },
     warmups: m.warmups.map((w) => ({ ...w, lab: cleanLabQuery(w.lab) })),
     concept: { ...m.concept, lab: cleanLabQuery(m.concept.lab) },
   }
