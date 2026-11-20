@@ -165,6 +165,12 @@ export const ResultsRequestSchema = z.object({
 })
 export type ResultsRequest = z.infer<typeof ResultsRequestSchema>
 
+export const ModulesRequestSchema = z.object({
+  turns: z.array(TurnSchema),
+  core: ResultCoreSchema,
+})
+export type ModulesRequest = z.infer<typeof ModulesRequestSchema>
+
 export const ModuleRequestSchema = z.object({
   request: z.string().min(2).max(300).describe('what the player wants to work on, in their words'),
   result: ResultSchema.pick({ profile: true, vision: true, skills: true, gaps: true, taste: true }),

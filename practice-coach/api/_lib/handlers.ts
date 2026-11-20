@@ -11,7 +11,8 @@ import {
   ModulesSchema,
   ResultCoreSchema,
   type AiModule,
-  type AiResult,
+  type AiResultCore,
+  type ModulesRequest,
   type InterviewRequest,
   type InterviewResponse,
   type ModuleRequest,
@@ -57,10 +58,15 @@ function cleanModule(m: AiModule): AiModule {
   }
 }
 
-export async function results(req: ResultsRequest): Promise<AiResult> {
-  const core = await ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultCoreSchema, effort: 'high', maxTokens: 12000 })
-  const mods = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000 })
-  return { ...core, modules: mods.modules.map(cleanModule) }
+/** Everything except the curriculum (one call, kept under Vercel's time limit). */
+export async function results(req: ResultsRequest): Promise<AiResultCore> {
+  return ask({ system: resultsSystem(), user: resultsUser(req), schema: ResultCoreSchema, effort: 'medium', maxTokens: 12000 })
+}
+
+/** The curriculum, written from the core results (second call). */
+export async function modules(req: ModulesRequest): Promise<AiModule[]> {
+  const out = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core: req.core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000 })
+  return out.modules.map(cleanModule)
 }
 
 export async function module(req: ModuleRequest): Promise<AiModule> {

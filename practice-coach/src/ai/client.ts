@@ -2,7 +2,7 @@
  * Talks to the app's own server functions (/api/*), which talk to Claude.
  * The passcode lives in the store; every AI request sends it.
  */
-import type { AiModule, AiResult, InterviewRequest, InterviewResponse, ModuleRequest, ResultsRequest } from '../../api/_lib/schemas'
+import type { AiModule, AiResultCore, InterviewRequest, InterviewResponse, ModuleRequest, ModulesRequest, ResultsRequest } from '../../api/_lib/schemas'
 import { getData } from '../store/store'
 
 export class AiClientError extends Error {
@@ -54,5 +54,6 @@ export function health(force = false): Promise<Health | null> {
 
 export const verifyPasscode = (code: string) => call<{ ok: boolean }>('auth', {}, code)
 export const nextScreens = (req: InterviewRequest) => call<InterviewResponse>('interview', req)
-export const getResults = (req: ResultsRequest) => call<AiResult>('results', req)
+export const getResults = (req: ResultsRequest) => call<AiResultCore>('results', req)
+export const getModules = (req: ModulesRequest) => call<{ modules: AiModule[] }>('modules', req)
 export const writeModule = (req: ModuleRequest) => call<AiModule>('module', req)

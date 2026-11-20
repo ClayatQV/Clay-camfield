@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AiResult } from '../../api/_lib/schemas'
 import { resultsRequest, setResult, startInterview } from '../ai/actions'
-import { getResults } from '../ai/client'
+import { getModules, getResults } from '../ai/client'
 import { LEVEL_NAMES } from '../ai/hooks'
 import { Icon } from '../components/Icon'
 import { formatShort, toKey } from '../lib/dates'
@@ -16,14 +16,21 @@ export function AiResults() {
   const data = useData()
   const { interview: iv, result, resultAt } = data.ai
   const [error, setError] = useState<string | null>(null)
+  const [stage, setStage] = useState<'read' | 'modules'>('read')
   const busy = useRef(false)
   const needGenerate = !result && !!iv?.done
 
   useEffect(() => {
     if (!needGenerate || busy.current || error || !iv) return
     busy.current = true
-    getResults(resultsRequest(iv))
-      .then((r) => setResult(r))
+    setStage('read')
+    const req = resultsRequest(iv)
+    getResults(req)
+      .then(async (core) => {
+        setStage('modules')
+        const { modules } = await getModules({ turns: req.turns, core })
+        setResult({ ...core, modules })
+      })
       .catch((e) => setError(e instanceof Error ? e.message : 'Something went wrong.'))
       .finally(() => {
         busy.current = false
@@ -62,8 +69,10 @@ export function AiResults() {
                 <i />
                 <i />
               </span>
-              <h2>Reading everything you told me…</h2>
-              <p className="small muted">Your profile, skill map, gaps and a recommended curriculum. This takes about half a minute.</p>
+              <h2>{stage === 'read' ? 'Reading everything you told me…' : 'Writing your curriculum…'}</h2>
+              <p className="small muted">
+                {stage === 'read' ? 'Your profile, skill map, gaps and taste. About half a minute.' : 'Modules built around your vision and your gaps. Another half minute.'}
+              </p>
             </>
           )}
         </div>
