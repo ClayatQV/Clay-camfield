@@ -150,9 +150,9 @@ export const FIXTURE_RESULT: AiResult = {
     ],
     inspires: ['Louis Armstrong’s phrasing', 'Stevie’s harmonica', 'Eric Gales going outside and coming back'],
     listening: [
-      { artist: 'Wes Montgomery', genre: 'Jazz', why: 'The octaves and the blues in his lines are your bridge into jazz.' },
-      { artist: 'Grant Green', genre: 'Jazz', why: 'Soul-jazz phrasing: simple notes, deep feel.' },
-      { artist: 'Cornell Dupree', genre: 'Soul / R&B', why: 'The fills behind singers you want to play.' },
+      { artist: 'Wes Montgomery', album: 'Smokin’ at the Half Note', genre: 'Jazz', why: 'The octaves and the blues in his lines are your bridge into jazz.' },
+      { artist: 'Grant Green', album: 'Idle Moments', genre: 'Jazz', why: 'Soul-jazz phrasing: simple notes, deep feel.' },
+      { artist: 'Cornell Dupree', album: 'Teasin’', genre: 'Soul / R&B', why: 'The fills behind singers you want to play.' },
     ],
   },
   practice: { minutesPerDay: 60, daysPerWeek: 7 },

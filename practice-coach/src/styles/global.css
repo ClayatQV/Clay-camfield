@@ -1801,3 +1801,24 @@ a.chip {
   border-top: 1px solid var(--line);
   padding-top: 10px;
 }
+
+/* Fretboard Lab opened inside a practice part */
+.inline-lab {
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.inline-lab-bar {
+  padding: 6px 10px 6px 16px;
+}
+.inline-lab-frame {
+  display: block;
+  width: 100%;
+  height: 520px;
+  border: 0;
+}
+.inline-lab-frame.tall {
+  height: 860px;
+}
+.link-row.as-button.on {
+  background: var(--surface-2);
+}

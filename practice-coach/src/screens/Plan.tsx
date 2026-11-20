@@ -41,6 +41,10 @@ function PlanHome({ plan }: { plan: ActivePlan }) {
         </p>
       </div>
 
+      <a className="btn primary big block" href={href('/practice')}>
+        Start today’s practice ›
+      </a>
+
       {plan.source === 'assessment' && (
         <section className="card plan-banner">
           <span className="eyebrow">Built from your assessment{plan.createdAt ? ` · ${formatShort(plan.createdAt.slice(0, 10))}` : ''}</span>

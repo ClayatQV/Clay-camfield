@@ -92,14 +92,7 @@ export function AiAssessment() {
           <span className="eyebrow">Block {blockIndex + 1} of 3</span>
           <h1 className="assess-q">{BLOCK_NAMES[iv.block]}</h1>
           <p className="muted">{BLOCK_INTRO[iv.block]}</p>
-          {blockIndex === 0 && (
-            <ul className="assess-points">
-              <li>Specific questions you can answer yes or no. No rating yourself.</li>
-              <li>It adapts: nothing too easy or too hard for you.</li>
-              <li>A few quick checks have a right answer. Guess if you don't know.</li>
-              <li>Everything saves as you go. Close any time and pick up later.</li>
-            </ul>
-          )}
+          {blockIndex === 0 && <p className="small muted">Quick taps. Everything saves as you go; close any time and pick up later.</p>}
           <button className="btn primary big block" onClick={() => setBegan(iv.block)}>
             {blockIndex === 0 ? 'Begin' : 'Continue'}
           </button>

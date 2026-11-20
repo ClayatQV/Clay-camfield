@@ -7,12 +7,13 @@ import type { Vision } from '../assessment/scoring'
 import type { BlockWeek, PartOption, SessionPart } from '../content/types'
 import type { GeneratedPlan, Milestone, PlanBlock } from './model'
 
-const MIN = {
-  triads: { 30: 5, 60: 8 },
-  arps: { 30: 5, 60: 8 },
-  concept: { 30: 5, 60: 14 },
-  application: { 30: 15, 60: 30 },
-} as const
+/** Part lengths as a share of the session: two short warm-ups, the idea, about half on a song. */
+const RATIO = { triads: 0.16, arps: 0.16, concept: 0.2, application: 0.48 } as const
+type Mins = { 30: number; 60: number }
+function minsFor(part: keyof typeof RATIO, sessionMinutes: number): Mins {
+  const long = Math.max(60, sessionMinutes)
+  return { 30: Math.max(1, Math.round(30 * RATIO[part])), 60: Math.max(1, Math.round(long * RATIO[part])) }
+}
 
 const search = (title: string, artist: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist} guitar transcription tab`.trim())}`
@@ -28,7 +29,13 @@ export function visionFromAi(r: AiResult): Vision {
   }
 }
 
-export function planFromModules(result: AiResult, modules: AiModule[], now = new Date()): GeneratedPlan {
+export function planFromModules(result: AiResult, modules: AiModule[], now = new Date(), sessionMinutes = 30): GeneratedPlan {
+  const MIN = {
+    triads: minsFor('triads', sessionMinutes),
+    arps: minsFor('arps', sessionMinutes),
+    concept: minsFor('concept', sessionMinutes),
+    application: minsFor('application', sessionMinutes),
+  }
   const pieceTitles = result.vision.pieces.map((p) => p.title.toLowerCase())
   const blocks: PlanBlock[] = []
   let gw = 1

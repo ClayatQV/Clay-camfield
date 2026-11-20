@@ -54,7 +54,7 @@ export const LevelSchema = z.number().int().min(0).max(5)
 export const ModuleSchema = z.object({
   id: z.string().describe('short slug'),
   title: z.string().describe('named for the music or outcome, not the exercise, e.g. "The bar 7 run at tempo"'),
-  weeks: z.number().int().min(1).max(3),
+  weeks: z.number().int().min(1).max(3).describe('default 1; 2–3 only when the material needs it'),
   why: z.string().describe('one line, in terms of THIS player\'s vision or gap'),
   towards: z.string().nullable().describe('the signature song/solo this module works toward, if any'),
   trains: z.array(z.string()).describe('skill tags this module trains'),
@@ -119,7 +119,7 @@ export const ResultSchema = z.object({
     genres: z.array(z.object({ id: z.string(), name: z.string(), rank: z.number().int(), depth: z.string().describe('"deep" / "solid" / "listening first"') })),
     dimensions: z.array(z.object({ name: z.string(), lean: z.string() })).describe('e.g. harmonically sophisticated ↔ raw, groove ↔ lead, clean ↔ gritty, vintage ↔ modern, composed ↔ improvised'),
     inspires: z.array(z.string()).describe('what lights this player up, in their words where possible'),
-    listening: z.array(z.object({ artist: z.string(), genre: z.string(), why: z.string() })).describe('up to 10'),
+    listening: z.array(z.object({ artist: z.string(), album: z.string(), genre: z.string(), why: z.string() })).describe('up to 10 albums'),
   }),
   practice: z.object({
     minutesPerDay: z.number().int().describe('from their answer; 30 or 60 if unsure'),
@@ -173,7 +173,7 @@ export type ModulesRequest = z.infer<typeof ModulesRequestSchema>
 
 export const ModuleRequestSchema = z.object({
   request: z.string().min(2).max(300).describe('what the player wants to work on, in their words'),
-  result: ResultSchema.pick({ profile: true, vision: true, skills: true, gaps: true, taste: true }),
+  result: z.record(z.string(), z.unknown()).describe('the player\'s results (profile, vision, skills, gaps, taste)'),
   existing: z.array(z.string()).describe('titles of modules already in their plan'),
 })
 export type ModuleRequest = z.infer<typeof ModuleRequestSchema>

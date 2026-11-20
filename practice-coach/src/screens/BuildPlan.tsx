@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AiModule } from '../../api/_lib/schemas'
-import { applyBuild, setBuildModules, setBuildTime } from '../ai/actions'
-import { writeModule } from '../ai/client'
+import { applyBuild, setBuildModules, setBuildTime, setModules } from '../ai/actions'
+import { getModules, writeModule } from '../ai/client'
 import { Icon } from '../components/Icon'
 import { toast } from '../components/Toast'
 import { href, navigate } from '../lib/router'
@@ -10,10 +10,57 @@ import { useData } from '../store/store'
 /** The player shapes the recommended curriculum, then it becomes their plan. */
 export function BuildPlan() {
   const data = useData()
-  const { result, build } = data.ai
+  const { result, build, interview } = data.ai
   const [busyId, setBusyId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [request, setRequest] = useState('')
+  const [genError, setGenError] = useState<string | null>(null)
+  const [customMin, setCustomMin] = useState('')
+  const generating = useRef(false)
+
+  // First visit after results: have the coach draft the routine now (not during results).
+  const needModules = !!result && result.modules.length === 0 && !genError
+  useEffect(() => {
+    if (!needModules || generating.current || !result) return
+    generating.current = true
+    const { modules: _m, ...core } = result
+    void _m
+    const turns = interview?.turns ?? []
+    getModules({ turns, core })
+      .then(({ modules }) => setModules(modules))
+      .catch((e) => setGenError(e instanceof Error ? e.message : 'Something went wrong.'))
+      .finally(() => {
+        generating.current = false
+      })
+  }, [needModules, result, interview])
+
+  if (result && result.modules.length === 0) {
+    return (
+      <div className="screen">
+        <div className="card empty">
+          {genError ? (
+            <>
+              <h2>Couldn't draft your routine</h2>
+              <p className="small muted">{genError}</p>
+              <button className="btn primary" onClick={() => setGenError(null)}>
+                Try again
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="ai-dots" aria-hidden>
+                <i />
+                <i />
+                <i />
+              </span>
+              <h2>Drafting your practice routine…</h2>
+              <p className="small muted">Built from your profile and what you said you want to work on first. About half a minute. You shape it next.</p>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   if (!result || !build) {
     return (
@@ -53,7 +100,7 @@ export function BuildPlan() {
       set(mods.map((x, k) => (k === i ? { ...fresh, id: `${fresh.id}-${Date.now().toString(36)}` } : x)))
       toast('Swapped')
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not swap', 3200)
+      toast(`Swap failed: ${e instanceof Error ? e.message : 'unknown error'}`, 5000)
     } finally {
       setBusyId(null)
     }
@@ -69,7 +116,7 @@ export function BuildPlan() {
       setAdding(false)
       toast('Added to your plan')
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Could not add', 3200)
+      toast(`Add failed: ${e instanceof Error ? e.message : 'unknown error'}`, 5000)
     } finally {
       setBusyId(null)
     }
@@ -94,20 +141,37 @@ export function BuildPlan() {
           <span className="small muted">{totalWeeks} weeks total</span>
         </div>
         <div className="field">
-          <span className="label">Minutes a day</span>
+          <span className="label">Minutes a day · {build.minutes}</span>
           <div className="seg full" role="group">
-            {[30, 60].map((m) => (
+            {[15, 30, 45, 60, 90, 120].map((m) => (
               <button key={m} aria-pressed={build.minutes === m} onClick={() => setBuildTime(m, build.days)}>
-                {m} min
+                {m}
               </button>
             ))}
           </div>
-          <p className="small muted">Two short warm-ups on your gaps, then the idea, then about half the time on a song you chose.</p>
+          <div className="row">
+            <input
+              className="input"
+              style={{ maxWidth: 160 }}
+              type="number"
+              inputMode="numeric"
+              min={5}
+              max={720}
+              placeholder="Custom minutes"
+              value={customMin}
+              onChange={(e) => setCustomMin(e.target.value)}
+              onBlur={() => {
+                const n = Math.round(Number(customMin))
+                if (n >= 5 && n <= 720) setBuildTime(n, build.days)
+              }}
+            />
+            <span className="small muted">Two short warm-ups on your gaps, the idea, then about half the time on a song you chose.</span>
+          </div>
         </div>
         <div className="field">
           <span className="label">Days a week</span>
           <div className="seg full" role="group">
-            {[3, 4, 5, 6, 7].map((d) => (
+            {[1, 2, 3, 4, 5, 6, 7].map((d) => (
               <button key={d} aria-pressed={build.days === d} onClick={() => setBuildTime(build.minutes, d)}>
                 {d}
               </button>

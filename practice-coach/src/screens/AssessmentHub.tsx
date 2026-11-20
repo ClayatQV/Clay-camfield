@@ -21,16 +21,14 @@ export function AssessmentHub() {
     <div className="screen">
       <div className="screen-head">
         <span className="eyebrow">Assessment</span>
-        <h1>Let the app get to know you</h1>
-        <p className="muted small">
-          Three short blocks: your skills, your taste and genres, then your vision. About 5–7 minutes of quick taps. Then you see your results and build your practice plan.
-        </p>
+        <h1>Player assessment</h1>
+        <p className="muted small">Three short blocks — skills, taste profile, vision — about 8 minutes of quick taps. Then your player profile, then you build your practice routine.</p>
       </div>
 
       <section className="card assess-card">
         <div className="row-between">
-          <h2>AI coach assessment</h2>
-          <span className="pill">5–7 min</span>
+          <h2>Player assessment</h2>
+          <span className="pill">~8 min</span>
         </div>
         <ol className="block-steps">
           {BLOCK_ORDER.map((b, i) => {

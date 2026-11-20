@@ -9,12 +9,12 @@ import { getData, update, type AiInterview } from '../store/store'
 
 export const BLOCK_ORDER: BlockId[] = ['skills', 'taste', 'vision']
 /** Mirrors BLOCK_BUDGET on the server (api/_lib/prompts.ts). */
-export const BLOCK_SCREENS: Record<BlockId, number> = { skills: 16, taste: 10, vision: 7 }
-export const BLOCK_NAMES: Record<BlockId, string> = { skills: 'Your skills', taste: 'Taste and genre', vision: 'Your vision' }
+export const BLOCK_SCREENS: Record<BlockId, number> = { skills: 22, taste: 12, vision: 9 }
+export const BLOCK_NAMES: Record<BlockId, string> = { skills: 'Skills', taste: 'Taste profile', vision: 'Vision' }
 export const BLOCK_INTRO: Record<BlockId, string> = {
-  skills: 'Where you are now. Specific questions, quick taps — no rating yourself. About 3 minutes.',
-  taste: 'Who you are as a player: your genres, the players you know, what you’d love to learn next. About 2 minutes.',
-  vision: 'Where you want to be. In your own words, plus the music that would make you feel you’d arrived. About 1½ minutes.',
+  skills: 'Where you are now. About 4 minutes.',
+  taste: 'Your genres, your influences, what you’d love to learn next. About 2½ minutes.',
+  vision: 'Where you want to be, in your own words. About 2 minutes.',
 }
 
 const fresh = (): AiInterview => ({
@@ -114,9 +114,14 @@ export function setResult(result: AiResult) {
       ...x.ai,
       result,
       resultAt: new Date().toISOString(),
-      build: { modules: result.modules, minutes: minutes >= 60 ? 60 : 30, days: Math.min(7, Math.max(3, days)) },
+      build: { modules: result.modules, minutes: Math.max(15, Math.round(minutes)), days: Math.min(7, Math.max(1, days)) },
     },
   }))
+}
+
+/** The curriculum arrives later (Build page); store it on the result and as the starting build. */
+export function setModules(modules: AiModule[]) {
+  update((x) => (x.ai.result ? { ...x, ai: { ...x.ai, result: { ...x.ai.result, modules }, build: { ...(x.ai.build ?? { minutes: 30, days: 5 }), modules } } } : x))
 }
 
 /* ---------------- building the plan ---------------- */
@@ -133,12 +138,12 @@ export function setBuildTime(minutes: number, days: number) {
 export function applyBuild(): boolean {
   const { ai } = getData()
   if (!ai.result || !ai.build || !ai.build.modules.length) return false
-  const plan = planFromModules(ai.result, ai.build.modules)
+  const plan = planFromModules(ai.result, ai.build.modules, new Date(), ai.build.minutes)
   update((x) => ({
     ...x,
     previousPlan: { plan: x.plan, planStart: x.settings.planStart, override: x.settings.override },
     plan,
-    settings: { ...x.settings, planStart: todayKey(), override: null, sessionLength: ai.build!.minutes >= 60 ? 60 : 30 },
+    settings: { ...x.settings, planStart: todayKey(), override: null, sessionLength: ai.build!.minutes > 45 ? 60 : 30 },
   }))
   return true
 }

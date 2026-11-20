@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AiScreen } from '../../api/_lib/schemas'
 import type { AnswerValue, Screen } from '../assessment/types'
 import { Icon } from './Icon'
@@ -87,24 +87,13 @@ export function AnswerInput({ screen: s, prior, onAnswer }: Props) {
             No
           </button>
           <button className="btn block ghost" onClick={() => answer(s.id, 'unsure')}>
-            Not sure
+            I don't know
           </button>
         </div>
       )
     case 'one':
     case 'quiz':
-      return (
-        <div className="assess-choices">
-          {(s.options ?? []).map((o) => (
-            <button key={o.id} className="btn big block choice" onClick={() => answer(s.id, o.id)}>
-              <span className="grow" style={{ textAlign: 'left' }}>
-                {o.label}
-                {o.sub && <span className="tap-sub"> · {o.sub}</span>}
-              </span>
-            </button>
-          ))}
-        </div>
-      )
+      return <One s={s} answer={answer} />
     case 'multi':
       return <Multi s={s} prior={Array.isArray(prior) ? prior : []} answer={answer} />
     case 'rank':
@@ -120,8 +109,53 @@ export function AnswerInput({ screen: s, prior, onAnswer }: Props) {
 
 type Sub = { s: UiScreen; answer: Props['onAnswer'] }
 
+const isOther = (id: string) => id === 'other' || id.startsWith('other')
+
+/** Small text field shown when a list has an "Other (type it)" option selected. */
+function OtherInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return <input className="input" autoFocus placeholder="Type it here" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Other" />
+}
+
+function One({ s, answer }: Sub) {
+  const [other, setOther] = useState<string | null>(null)
+  return (
+    <div className="assess-choices">
+      {(s.options ?? []).map((o) =>
+        isOther(o.id) && s.kind !== 'quiz' ? (
+          <div key={o.id} className="stack-sm">
+            <button className="btn big block choice" aria-pressed={other !== null} onClick={() => setOther(other === null ? '' : null)}>
+              <span className="grow" style={{ textAlign: 'left' }}>
+                {o.label}
+              </span>
+            </button>
+            {other !== null && (
+              <div className="row">
+                <OtherInput value={other} onChange={setOther} />
+                <button className="btn primary" disabled={!other.trim()} onClick={() => answer(s.id, `other:${other.trim()}`)}>
+                  Done
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button key={o.id} className="btn big block choice" onClick={() => answer(s.id, o.id)}>
+            <span className="grow" style={{ textAlign: 'left' }}>
+              {o.label}
+              {o.sub && <span className="tap-sub"> · {o.sub}</span>}
+            </span>
+          </button>
+        ),
+      )}
+    </div>
+  )
+}
+
+/** Replaces a selected "other" id with the typed text so the coach sees it. */
+const withOther = (sel: string[], other: string) => sel.map((id) => (isOther(id) && other.trim() ? `other:${other.trim()}` : id))
+
 function Multi({ s, prior, answer }: Sub & { prior: string[] }) {
   const [sel, setSel] = useState<string[]>(prior)
+  const [other, setOther] = useState('')
   const max = s.max ?? Infinity
   const toggle = (id: string) =>
     setSel((x) => (x.includes(id) ? x.filter((y) => y !== id) : x.length >= max ? (max === 1 ? [id] : x) : [...x, id]))
@@ -136,13 +170,14 @@ function Multi({ s, prior, answer }: Sub & { prior: string[] }) {
           </button>
         ))}
       </div>
+      {sel.some(isOther) && <OtherInput value={other} onChange={setOther} />}
       <div className="row">
         {s.noneLabel && (
           <button className="btn grow" onClick={() => answer(s.id, [])}>
             {s.noneLabel}
           </button>
         )}
-        <button className="btn primary grow" disabled={!!s.noneLabel && !sel.length} onClick={() => answer(s.id, sel)}>
+        <button className="btn primary grow" disabled={!!s.noneLabel && !sel.length} onClick={() => answer(s.id, withOther(sel, other))}>
           Done{sel.length ? ` · ${sel.length}` : ''}
         </button>
       </div>
@@ -152,6 +187,7 @@ function Multi({ s, prior, answer }: Sub & { prior: string[] }) {
 
 function Rank({ s, prior, answer }: Sub & { prior: string[] }) {
   const [sel, setSel] = useState<string[]>(prior)
+  const [other, setOther] = useState('')
   const max = s.max ?? 3
   const toggle = (id: string) => setSel((x) => (x.includes(id) ? x.filter((y) => y !== id) : x.length >= max ? x : [...x, id]))
   return (
@@ -167,7 +203,8 @@ function Rank({ s, prior, answer }: Sub & { prior: string[] }) {
           )
         })}
       </div>
-      <button className="btn primary block big" disabled={!sel.length} onClick={() => answer(s.id, sel)}>
+      {sel.some(isOther) && <OtherInput value={other} onChange={setOther} />}
+      <button className="btn primary block big" disabled={!sel.length} onClick={() => answer(s.id, withOther(sel, other))}>
         {sel.length ? `Done · ${sel.length} picked` : `Tap up to ${max}`}
       </button>
     </div>
@@ -219,11 +256,50 @@ function Grid({ s, prior, answer }: Sub & { prior: Record<string, number> }) {
   )
 }
 
+type Recognition = { start: () => void; stop: () => void; continuous: boolean; interimResults: boolean; lang: string; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null }
+const SpeechCtor = (): (new () => Recognition) | null => {
+  const w = window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
+}
+
 function LongText({ s, prior, answer }: Sub & { prior: string }) {
   const [val, setVal] = useState(prior)
+  const [listening, setListening] = useState(false)
+  const rec = useRef<Recognition | null>(null)
+  const canSpeak = !!SpeechCtor()
+  useEffect(() => () => rec.current?.stop(), [])
+  const toggleMic = () => {
+    if (listening) {
+      rec.current?.stop()
+      setListening(false)
+      return
+    }
+    const C = SpeechCtor()
+    if (!C) return
+    const r = new C()
+    r.continuous = true
+    r.interimResults = true
+    r.lang = navigator.language || 'en-US'
+    const base = val ? val.trimEnd() + ' ' : ''
+    r.onresult = (e) => {
+      let text = ''
+      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
+      setVal(base + text)
+    }
+    r.onend = () => setListening(false)
+    r.onerror = () => setListening(false)
+    rec.current = r
+    r.start()
+    setListening(true)
+  }
   return (
     <div className="stack">
       <textarea className="input longtext" rows={5} placeholder={s.placeholder ?? undefined} value={val} onChange={(e) => setVal(e.target.value)} />
+      {canSpeak && (
+        <button className={`btn sm${listening ? ' amber' : ''}`} onClick={toggleMic} type="button" aria-pressed={listening}>
+          {listening ? '● Listening… tap to stop' : '🎤 Speak it instead'}
+        </button>
+      )}
       {s.examples && s.examples.length > 0 && !val && (
         <div className="stack-sm">
           <span className="small muted">Need a spark? Tap one to start from it:</span>

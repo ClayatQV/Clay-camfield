@@ -4,6 +4,7 @@ import { PART_IDS } from '../content/types'
 import { Icon } from '../components/Icon'
 import { ShareCard } from '../components/ShareCard'
 import { WeekStrip } from '../components/WeekStrip'
+import { InlineLab } from '../components/InlineLab'
 import { AssessmentCard } from '../components/AssessmentCard'
 import { formatClock, formatLong, formatShort } from '../lib/dates'
 import { chime, keepAwake, primeAudio } from '../lib/feedback'
@@ -232,6 +233,7 @@ function PartCard(props: {
   onReset: () => void
 }) {
   const { part, lengthMode, seconds, running, done } = props
+  const [openLab, setOpenLab] = useState<{ url: string; label: string } | null>(null)
   const target = part.minutes[lengthMode] * 60
   const pct = Math.min(100, (seconds / target) * 100)
   const reached = seconds >= target
@@ -279,12 +281,19 @@ function PartCard(props: {
       {(part.labLinks?.length || part.lessonId || part.externalLinks?.length || seconds > 0) && (
         <div className="links">
           {part.labLinks?.map((l) => (
-            <a key={l.labUrl} className="link-row" href={href(l.labUrl)}>
+            <button
+              key={l.labUrl}
+              className={`link-row as-button${openLab?.url === l.labUrl ? ' on' : ''}`}
+              style={{ color: 'var(--accent)' }}
+              onClick={() => setOpenLab(openLab?.url === l.labUrl ? null : { url: l.labUrl, label: l.label })}
+              aria-expanded={openLab?.url === l.labUrl}
+            >
               <Icon name="lab" size={18} />
               <span className="grow">{l.label}</span>
-              <span aria-hidden>›</span>
-            </a>
+              <span aria-hidden>{openLab?.url === l.labUrl ? '▾' : '›'}</span>
+            </button>
           ))}
+          {openLab && <InlineLab labUrl={openLab.url} label={openLab.label} onClose={() => setOpenLab(null)} />}
           {part.lessonId && (
             <a className="link-row" href={href(`/lessons/${part.lessonId}`)}>
               <Icon name="lessons" size={18} />

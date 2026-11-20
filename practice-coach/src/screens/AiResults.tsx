@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AiResult } from '../../api/_lib/schemas'
 import { resultsRequest, setResult, startInterview } from '../ai/actions'
-import { getModules, getResults } from '../ai/client'
+import { getResults } from '../ai/client'
 import { LEVEL_NAMES } from '../ai/hooks'
 import { Icon } from '../components/Icon'
 import { formatShort, toKey } from '../lib/dates'
@@ -16,21 +16,14 @@ export function AiResults() {
   const data = useData()
   const { interview: iv, result, resultAt } = data.ai
   const [error, setError] = useState<string | null>(null)
-  const [stage, setStage] = useState<'read' | 'modules'>('read')
   const busy = useRef(false)
   const needGenerate = !result && !!iv?.done
 
   useEffect(() => {
     if (!needGenerate || busy.current || error || !iv) return
     busy.current = true
-    setStage('read')
-    const req = resultsRequest(iv)
-    getResults(req)
-      .then(async (core) => {
-        setStage('modules')
-        const { modules } = await getModules({ turns: req.turns, core })
-        setResult({ ...core, modules })
-      })
+    getResults(resultsRequest(iv))
+      .then((core) => setResult({ ...core, modules: [] }))
       .catch((e) => setError(e instanceof Error ? e.message : 'Something went wrong.'))
       .finally(() => {
         busy.current = false
@@ -69,10 +62,8 @@ export function AiResults() {
                 <i />
                 <i />
               </span>
-              <h2>{stage === 'read' ? 'Reading everything you told me…' : 'Writing your curriculum…'}</h2>
-              <p className="small muted">
-                {stage === 'read' ? 'Your profile, skill map, gaps and taste. About half a minute.' : 'Modules built around your vision and your gaps. Another half minute.'}
-              </p>
+              <h2>Reading everything you told me…</h2>
+              <p className="small muted">Your player profile: strengths, gaps, taste. About half a minute.</p>
             </>
           )}
         </div>
@@ -102,7 +93,7 @@ function ResultView({ r, at }: { r: AiResult; at: string | null }) {
         </ul>
         <p className="small muted">{checks}.</p>
         <a className="btn primary big block" href={href('/assessment/build')}>
-          Build my practice plan <Icon name="back" size={18} />
+          Build your practice routine
         </a>
       </section>
 
@@ -206,19 +197,19 @@ function ResultView({ r, at }: { r: AiResult; at: string | null }) {
         )}
         {r.taste.listening.length > 0 && (
           <div className="stack-sm">
-            <span className="label">Listening list</span>
+            <span className="label">Albums to put on this week</span>
             {r.taste.listening.map((l) => (
               <div key={l.artist} className="listen-row">
                 <div className="grow">
-                  <strong>{l.artist}</strong>
+                  <strong>{l.album ? `${l.artist} — ${l.album}` : l.artist}</strong>
                   <div className="small muted">
                     {l.genre} · {l.why}
                   </div>
                 </div>
-                <a className="btn sm" href={spotify(l.artist)} target="_blank" rel="noreferrer">
+                <a className="btn sm" href={spotify(`${l.artist} ${l.album ?? ''}`.trim())} target="_blank" rel="noreferrer">
                   Spotify
                 </a>
-                <a className="btn sm" href={yt(`${l.artist} essential`)} target="_blank" rel="noreferrer">
+                <a className="btn sm" href={yt(`${l.artist} ${l.album ?? ''} full album`.trim())} target="_blank" rel="noreferrer">
                   YouTube
                 </a>
               </div>
@@ -228,18 +219,10 @@ function ResultView({ r, at }: { r: AiResult; at: string | null }) {
       </section>
 
       <section className="card">
-        <h2>Recommended curriculum</h2>
-        <p className="small muted">{r.modules.length} modules, 1–3 weeks each. On the next page you keep, swap, drop, reorder and add your own.</p>
-        <ol className="module-list">
-          {r.modules.map((m) => (
-            <li key={m.id}>
-              <strong>{m.title}</strong> <span className="small muted">· {m.weeks} wk{m.weeks > 1 ? 's' : ''}</span>
-              <div className="small">{m.why}</div>
-            </li>
-          ))}
-        </ol>
+        <h2>Next: build your practice routine</h2>
+        <p className="small muted">The coach drafts a routine from this profile and what you said you want to work on first. You keep, swap, drop, reorder, set time, and add your own.</p>
         <a className="btn primary big block" href={href('/assessment/build')}>
-          Build my practice plan
+          Build your practice routine
         </a>
       </section>
 
