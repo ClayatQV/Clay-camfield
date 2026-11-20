@@ -1,7 +1,7 @@
 /**
  * Player assessment: content and screen types.
  *
- * Code owns the frame (tap flow, placement ladders, scoring). Content (genre
+ * Code owns the frame (question flow, placement ladders, scoring). Content (genre
  * modules, skill ladders) is plain data so it can later be written by AI from
  * the blues template and reviewed before use.
  */
@@ -29,10 +29,10 @@ export type Screen =
   | (Base & { kind: 'one'; options: Opt[] })
   /** Graded single answer (spot check). */
   | (Base & { kind: 'quiz'; options: Opt[]; correct: string })
-  /** Tap all that apply. `weights` grades the picks (level = highest weight picked). */
+  /** Choose all that apply. `weights` grades the picks (level = highest weight picked). */
   | (Base & { kind: 'multi'; options: Opt[]; max?: number; noneLabel?: string; weights?: Record<string, number> })
   | (Base & { kind: 'rank'; options: Opt[]; max: number })
-  /** Tap once = know it, twice = can play it. */
+  /** Select once = know it, twice = can play it. */
   | (Base & { kind: 'grid'; items: Opt[]; playLabel: string })
   | (Base & { kind: 'text'; max: number; placeholder?: string })
   /** Written answer in the player's own words (optional). */

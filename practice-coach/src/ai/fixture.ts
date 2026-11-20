@@ -18,7 +18,7 @@ export const FIXTURE_MODULES: AiModule[] = [
     ],
     concept: { label: 'E minor pentatonic + the 6th, frets 12–17', instruction: 'Loop bars 7–9 at 0.5× with the speed ladder. Say the note names. Hear the C♯ as Dorian, then the G major pentatonic over Cmaj7.', lab: 'mode=scales&root=E&scale=minpent&pos=12' },
     application: {
-      instruction: 'Pick one and learn it from a video with the tab on screen; then solo over it using only this week’s idea.',
+      instruction: 'Pick one and learn it from a video with the tabs on screen; then solo over it using only this week’s idea.',
       songs: [
         { title: 'Kid Charlemagne solo', artist: 'Larry Carlton', note: 'your goal — lesson with bar map' },
         { title: 'The Thrill Is Gone', artist: 'B.B. King', note: null },

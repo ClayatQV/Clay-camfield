@@ -74,7 +74,7 @@ export const BLUES: GenreModule = {
     {
       id: 'blues-a1',
       kind: 'graded',
-      prompt: 'Over the V chord in a blues turnaround, what can you play? Tap all that work.',
+      prompt: 'Over the V chord in a blues turnaround, what can you play? Choose all that work.',
       options: [
         { label: 'Minor pentatonic of the key', weight: 1 },
         { label: 'The V7 arpeggio', weight: 2 },
@@ -158,7 +158,7 @@ export const JAZZ: GenreModule = {
     {
       id: 'jazz-a1',
       kind: 'graded',
-      prompt: 'Over G7 resolving to Cmaj7, what can you play? Tap all that work.',
+      prompt: 'Over G7 resolving to Cmaj7, what can you play? Choose all that work.',
       options: [
         { label: 'Just the C major scale', weight: 1 },
         { label: 'G Mixolydian', weight: 1 },
@@ -234,7 +234,7 @@ export const SOUL: GenreModule = {
     {
       id: 'soul-a1',
       kind: 'graded',
-      prompt: 'Over an Am9 neo-soul vamp, what works? Tap all.',
+      prompt: 'Over an Am9 neo-soul vamp, what works? Choose all that apply.',
       options: [
         { label: 'A natural minor', weight: 1 },
         { label: 'A minor pentatonic', weight: 1 },
@@ -365,7 +365,7 @@ export const GOSPEL: GenreModule = {
     {
       id: 'gospel-a2',
       kind: 'graded',
-      prompt: 'Over a sustained C chord in a slow worship song, what can you play? Tap all.',
+      prompt: 'Over a sustained C chord in a slow worship song, what can you play? Choose all that apply.',
       options: [
         { label: 'C major scale', weight: 1 },
         { label: 'C major pentatonic', weight: 1 },
@@ -437,7 +437,7 @@ export const COUNTRY: GenreModule = {
     {
       id: 'country-a2',
       kind: 'graded',
-      prompt: 'Over a D7 in a country shuffle, what can you play? Tap all.',
+      prompt: 'Over a D7 in a country shuffle, what can you play? Choose all that apply.',
       options: [
         { label: 'D minor pentatonic only', weight: 1 },
         { label: 'D major pentatonic', weight: 1 },
@@ -622,7 +622,7 @@ export const ROCK: GenreModule = {
     {
       id: 'rock-a2',
       kind: 'graded',
-      prompt: 'Over an A7 in a rock-blues shuffle, what can you play? Tap all.',
+      prompt: 'Over an A7 in a rock-blues shuffle, what can you play? Choose all that apply.',
       options: [
         { label: 'Just the A minor pentatonic box', weight: 1 },
         { label: 'A major pentatonic', weight: 2 },

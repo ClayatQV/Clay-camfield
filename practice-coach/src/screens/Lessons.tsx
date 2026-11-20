@@ -37,7 +37,7 @@ export function Lessons({ query }: { query: URLSearchParams }) {
     <div className="screen">
       <div className="screen-head">
         <span className="eyebrow">Lessons</span>
-        <h1>Real music, tab on screen</h1>
+        <h1>Real music, tabs on screen</h1>
       </div>
 
       <div className="seg full" role="group" aria-label="Status">

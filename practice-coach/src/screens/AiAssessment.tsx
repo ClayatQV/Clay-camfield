@@ -92,7 +92,7 @@ export function AiAssessment() {
           <span className="eyebrow">Block {blockIndex + 1} of 3</span>
           <h1 className="assess-q">{BLOCK_NAMES[iv.block]}</h1>
           <p className="muted">{BLOCK_INTRO[iv.block]}</p>
-          {blockIndex === 0 && <p className="small muted">Quick taps. Everything saves as you go; close any time and pick up later.</p>}
+          {blockIndex === 0 && <p className="small muted">Quick questions. Everything saves as you go; close any time and pick up later.</p>}
           <button className="btn primary big block" onClick={() => setBegan(iv.block)}>
             {blockIndex === 0 ? 'Begin' : 'Continue'}
           </button>

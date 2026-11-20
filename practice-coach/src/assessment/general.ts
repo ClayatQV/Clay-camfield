@@ -18,7 +18,7 @@ export const TECHNIQUE: Screen = {
   section: 'skills',
   kind: 'multi',
   eyebrow: 'Technique',
-  prompt: 'Tap what you can do cleanly.',
+  prompt: 'Choose what you can do cleanly.',
   noneLabel: 'None of these yet',
   options: o([
     ['alternate', 'Alternate picking'],
@@ -51,7 +51,7 @@ export const TIMING: Screen = {
   section: 'skills',
   kind: 'multi',
   eyebrow: 'Timing and feel',
-  prompt: 'Tap what’s true for you.',
+  prompt: 'Choose what’s true for you.',
   noneLabel: 'None of these',
   options: o([
     ['metronome', 'I practice with a metronome'],
@@ -264,7 +264,7 @@ export const GOALS: Screen[] = [
     prompt: 'What do you already learn from?',
     noneLabel: 'None of these',
     options: o([
-      ['transcriptions', 'YouTube transcriptions (tab on screen)'],
+      ['transcriptions', 'YouTube transcriptions (tabs on screen)'],
       ['tutorials', 'Lesson / tutorial videos'],
       ['tabsites', 'Tab websites'],
       ['books', 'Books'],

@@ -99,7 +99,7 @@ function ReviewCard({
           <span className="pill amber">To review</span>
         </div>
         <p className="small">
-          Check that the tab is <strong>on screen with the recording</strong> and the chord changes are shown. Then approve or reject.
+          Check that the tabs are <strong>on screen with the recording</strong> and the chord changes are shown. Then approve or reject.
         </p>
         {lesson.verification && <p className="small muted">{lesson.verification}</p>}
         {videos.length > 1 && (

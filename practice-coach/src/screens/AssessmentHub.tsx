@@ -10,7 +10,7 @@ import { formatShort, toKey } from '../lib/dates'
 import { href, navigate } from '../lib/router'
 import { useData } from '../store/store'
 
-/** The assessment home: the AI coach (5–7 min, three blocks) and the quick tap version. */
+/** The assessment home: the AI coach (5–7 min, three blocks) and the quick offline version. */
 export function AssessmentHub() {
   const data = useData()
   const st = useAiStatus()
@@ -22,7 +22,7 @@ export function AssessmentHub() {
       <div className="screen-head">
         <span className="eyebrow">Assessment</span>
         <h1>Player assessment</h1>
-        <p className="muted small">Three short blocks — skills, taste profile, vision — about 8 minutes of quick taps. Then your player profile, then you build your practice routine.</p>
+        <p className="muted small">Three short blocks — skills, taste profile, vision — about 8 minutes of quick questions. Then your player profile, then you build your practice routine.</p>
       </div>
 
       <section className="card assess-card">
@@ -48,7 +48,7 @@ export function AssessmentHub() {
         ) : !st.server ? (
           <p className="small muted">The AI coach runs on the Vercel version of this app, not on this address. Open the app from its Vercel link to use it.</p>
         ) : !st.configured ? (
-          <p className="small muted">The AI coach isn't set up on the server yet (API key or passcode missing). The quick tap version below works in the meantime.</p>
+          <p className="small muted">The AI coach isn't set up on the server yet (API key or passcode missing). The quick offline version below works in the meantime.</p>
         ) : !st.hasPasscode ? (
           <PasscodeEntry />
         ) : (
@@ -160,7 +160,7 @@ function TapCard() {
   return (
     <section className="card">
       <div className="row-between">
-        <h2>Quick tap version</h2>
+        <h2>Quick offline version</h2>
         <span className="pill">~8 min · offline</span>
       </div>
       <p className="small muted">The built-in assessment: fixed questions, no AI, works without a connection. Builds a plan from your answers.</p>

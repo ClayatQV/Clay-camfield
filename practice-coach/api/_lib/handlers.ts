@@ -33,7 +33,7 @@ export async function interview(req: InterviewRequest): Promise<InterviewRespons
   if (out.screens.length > room) out.screens = out.screens.slice(0, room)
   if (room === 0 && !out.blockDone) {
     out.blockDone = true
-    out.summary = out.summary ?? 'That’s this block. Tap continue when you’re ready.'
+    out.summary = out.summary ?? 'That’s this block. Continue when you’re ready.'
   }
   // Never hand the app an unanswerable screen.
   out.screens = out.screens.filter((s) => {

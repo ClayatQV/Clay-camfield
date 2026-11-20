@@ -20,7 +20,7 @@ The assessment and curriculum are run by an AI coach (Claude) through small serv
 | `ANTHROPIC_API_KEY` | Your Anthropic API key (console.anthropic.com). Pay-as-you-go; a full assessment plus results costs well under a dollar. |
 | `APP_PASSCODE` | A passcode you choose. The site is public; this keeps strangers from using the coach on your key. You enter it once in the app (Assessment page or Settings). |
 
-Without them the coach is off and the built-in tap assessment still works. The rules the coach follows are in `docs/interviewer-rules.md`.
+Without them the coach is off and the built-in offline assessment still works. The rules the coach follows are in `docs/interviewer-rules.md`.
 
 **Locally:** put the same two variables in `practice-coach/.env.local` (git ignores it), then `npm run dev` or `npm run preview`; the API routes are served at `/api/*` by Vite.
 

@@ -301,7 +301,7 @@ export const FOCI: Focus[] = [
     goals: ['ear'],
     done: (r) => top(r, 'ear') >= 3,
     weeks: [
-      { concept: 'A melody by ear every day', instruction: 'Pick a short melody, find it on the guitar by ear, say the note names. No tab.', lab: [{ label: 'Major scale with note names', p: { mode: 'scales', root: 'G', scale: 'ionian', pos: 2, label: 'note' } }] },
+      { concept: 'A melody by ear every day', instruction: 'Pick a short melody, find it on the guitar by ear, say the note names. No tabs.', lab: [{ label: 'Major scale with note names', p: { mode: 'scales', root: 'G', scale: 'ionian', pos: 2, label: 'note' } }] },
       { concept: 'Hear I–IV–V, then ii–V', instruction: 'Listen to three songs and write the Nashville numbers before checking.', lab: [{ label: 'Diatonic 7th chords · cycle', p: { mode: 'chords', root: 'C', type: 'maj7', voicing: 'drop2', move: '251' } }] },
       { concept: 'Transcribe four bars of a solo', instruction: 'Slow it down and loop it, but find every note by ear first.', lab: [{ label: 'Minor pentatonic · 5th position', p: { mode: 'scales', root: 'A', scale: 'minpent', pos: 5 } }] },
     ],

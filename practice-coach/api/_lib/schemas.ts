@@ -19,7 +19,7 @@ export const ScreenSchema = z.object({
   kind: z
     .enum(['yn', 'one', 'multi', 'grid', 'quiz', 'text', 'longtext', 'rank'])
     .describe(
-      'yn: Yes/No/Not sure · one: pick one · multi: tap all that apply · grid: tap once = know, twice = can play · quiz: one right answer · text: up to `max` short lines · longtext: a written answer · rank: tap up to `max` in order',
+      'yn: Yes/No/Not sure · one: pick one · multi: choose all that apply · grid: select once = know, twice = can play · quiz: one right answer · text: up to `max` short lines · longtext: a written answer · rank: pick up to `max` in order',
     ),
   eyebrow: z.string().nullable().describe('tiny label above the question: the area, e.g. "Chords" or "Blues"'),
   prompt: z.string().describe('the question, short and specific'),
@@ -27,7 +27,7 @@ export const ScreenSchema = z.object({
   options: z.array(OptSchema).nullable().describe('for one, multi, quiz, rank, grid (grid uses them as items)'),
   max: z.number().int().nullable().describe('multi/rank: max picks · text: number of lines'),
   noneLabel: z.string().nullable().describe('multi: label for the "none of these" button'),
-  playLabel: z.string().nullable().describe('grid: what a double tap means, e.g. "can play it"'),
+  playLabel: z.string().nullable().describe('grid: what selecting twice means, e.g. "can play it"'),
   correct: z.string().nullable().describe('quiz: the id of the correct option'),
   placeholder: z.string().nullable(),
   examples: z.array(z.string()).nullable().describe('longtext: tappable starter phrases'),

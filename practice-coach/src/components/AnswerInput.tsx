@@ -4,7 +4,7 @@ import type { AnswerValue, Screen } from '../assessment/types'
 import { Icon } from './Icon'
 
 /**
- * One shape for a question on screen, whether it came from the built-in tap
+ * One shape for a question on screen, whether it came from the built-in offline
  * assessment (Screen) or from the AI interviewer (AiScreen).
  */
 export type UiScreen = {
@@ -67,7 +67,7 @@ export function AnswerInput({ screen: s, prior, onAnswer }: Props) {
       return (
         <div className="stack">
           <ul className="assess-points">
-            <li>Quick taps. Most questions are Yes / No.</li>
+            <li>Quick questions. Most are Yes / No.</li>
             <li>It adapts: you won't see questions that are too easy or too hard for you.</li>
             <li>A few quick checks keep it accurate.</li>
             <li>Your answers save as you go. Close it any time and pick up later.</li>
@@ -205,7 +205,7 @@ function Rank({ s, prior, answer }: Sub & { prior: string[] }) {
       </div>
       {sel.some(isOther) && <OtherInput value={other} onChange={setOther} />}
       <button className="btn primary block big" disabled={!sel.length} onClick={() => answer(s.id, withOther(sel, other))}>
-        {sel.length ? `Done · ${sel.length} picked` : `Tap up to ${max}`}
+        {sel.length ? `Done · ${sel.length} picked` : `Pick up to ${max}`}
       </button>
     </div>
   )
@@ -297,7 +297,7 @@ function LongText({ s, prior, answer }: Sub & { prior: string }) {
       <textarea className="input longtext" rows={5} placeholder={s.placeholder ?? undefined} value={val} onChange={(e) => setVal(e.target.value)} />
       {canSpeak && (
         <button className={`btn sm${listening ? ' amber' : ''}`} onClick={toggleMic} type="button" aria-pressed={listening}>
-          {listening ? '● Listening… tap to stop' : '🎤 Speak it instead'}
+          {listening ? '● Listening… press to stop' : '🎤 Speak it instead'}
         </button>
       )}
       {s.examples && s.examples.length > 0 && !val && (

@@ -126,7 +126,7 @@ export function* walk(ans: Answers): Walk {
     section: 'start',
     kind: 'welcome',
     prompt: 'Let’s find out exactly where you are.',
-    help: 'About 10 minutes of quick taps. There are no wrong answers — except a few quick checks. Answer honestly and your plan will fit you.',
+    help: 'About 10 minutes of quick questions. There are no wrong answers — except a few quick checks. Answer honestly and your plan will fit you.',
   }
 
   /* ---- vision: where you want to be, before anything is measured ---- */
@@ -204,7 +204,7 @@ export function* walk(ans: Answers): Walk {
       kind: 'grid',
       eyebrow: eb,
       prompt: `Which ${g.name} artists do you know?`,
-      help: 'Tap once if you know them. Tap twice if you can play some of their songs.',
+      help: 'Select once if you know them, twice if you can play some of their songs.',
       playLabel: 'can play their songs',
       items: g.artists.map((a) => ({ id: slug(a.name), label: a.name, sub: a.inst })),
     }
@@ -215,7 +215,7 @@ export function* walk(ans: Answers): Walk {
       kind: 'grid',
       eyebrow: eb,
       prompt: `Which of these ${g.name} songs do you know?`,
-      help: 'Tap once if you know it. Tap twice if you can play it.',
+      help: 'Select once if you know it, twice if you can play it.',
       playLabel: 'can play it',
       items: g.songs.map((s) => ({ id: slug(s.title), label: s.title, sub: s.artist })),
     }
@@ -227,7 +227,7 @@ export function* walk(ans: Answers): Walk {
         section: 'genres',
         kind: 'multi',
         eyebrow: eb,
-        prompt: 'Tap the feels you can play on demand.',
+        prompt: 'Choose the feels you can play on demand.',
         noneLabel: 'None of these yet',
         options: g.feels.map((f) => ({ id: slug(f), label: f })),
       }
@@ -239,7 +239,7 @@ export function* walk(ans: Answers): Walk {
         section: 'genres',
         kind: 'multi',
         eyebrow: eb,
-        prompt: 'Tap what you can do.',
+        prompt: 'Choose what you can do.',
         noneLabel: 'None of these yet',
         options: g.mustHaves.map((m) => ({ id: slug(m), label: m })),
       }

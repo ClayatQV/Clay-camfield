@@ -29,7 +29,7 @@ export const PROFILE: Profile = {
   guitarHeroesNow: ['Isaiah Sharkey', 'George Benson', 'Eric Gales', 'Marcus King', 'Julian Lage', 'Wes Montgomery', 'Derek Trucks'],
   foundation: ['B.B. King', 'Albert King', 'SRV', 'Hendrix', 'John Mayer'],
   learningStyle:
-    "Concepts first; snippets by default, full pieces when inspired; tab visible in-video with the recording and chords; doesn't sing lines; says note names out loud",
+    "Concepts first; snippets by default, full pieces when inspired; tabs visible in-video with the recording and chords; doesn't sing lines; says note names out loud",
 }
 
 export const COMMITMENT = '6 hard months, 30–60 minutes a day. Phone + guitar only (electric, unplugged).'

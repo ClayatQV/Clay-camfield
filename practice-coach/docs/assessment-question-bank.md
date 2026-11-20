@@ -9,13 +9,13 @@ The assessment is the backbone of the app. Its job: know each player well enough
 ## 1. Rules
 
 1. **10 minutes max.** Target about 9½. If a section runs over its budget, it gets cut.
-2. **Every question is one quick tap.** One question per screen, big buttons, tapping an answer moves you on (no "Next"). Back button and Skip are always there.
+2. **Every question is one quick choice.** One question per screen, big buttons, choosing an answer moves you on (no "Next"). Back button and Skip are always there.
 3. **Answer types:**
    - **Y/N** — Yes / No / Not sure. "Not sure" counts as No for placement.
-   - **One** — tap one.
-   - **Multi** — tap all that apply, then Done.
-   - **Grid** — a tap grid of names or songs. **Tap once = I know it, tap twice = I can play it** (tap again to clear). One screen instead of 40 questions.
-   - **Rank** — tap up to 3 in order.
+   - **One** — pick one.
+   - **Multi** — choose all that apply, then Done.
+   - **Grid** — a grid of names or songs. **Select once = I know it, twice = I can play it** (select again to clear). One screen instead of 40 questions.
+   - **Rank** — pick up to 3 in order.
    - Every list has **Other**.
 4. **No self-ratings.** People rate themselves too high. We ask concrete things they can answer yes or no ("Do you know your major triads on the top 3 strings?").
 5. **Adaptive like a placement test.** Each skill path is a ladder of rungs. Start in the middle; Yes jumps up, No steps down, stop at the boundary. The bank is deep; each person only sees about 10–15 questions per area.
@@ -75,13 +75,13 @@ Knowing only the modern players but none of the roots (e.g., Kingfish and Gales 
 
 Every genre uses the same 6 parts. Short modules (#2, #3) use parts A, B and C plus one applied question.
 
-### A. Artists — Grid (tap once = know, twice = can play their songs)
+### A. Artists — Grid (select once = know, twice = can play their songs)
 
 **Blues (20, all eras, any instrument):** Robert Johnson · Muddy Waters · Howlin' Wolf · T-Bone Walker · John Lee Hooker · Elmore James · Little Walter (harp) · B.B. King · Albert King · Freddie King · Buddy Guy · Otis Rush · Albert Collins · Etta James (voice) · Jimi Hendrix · Stevie Ray Vaughan · Robben Ford · Gary Clark Jr. · Christone "Kingfish" Ingram · Eric Gales
 
 Eras for the roots-gap check: roots = first 7 · classic = B.B. through Etta · rock era = Hendrix, SRV, Robben Ford · modern = Gary Clark Jr., Kingfish, Gales.
 
-### B. Songs — Grid (tap once = know, twice = can play)
+### B. Songs — Grid (select once = know, twice = can play)
 
 Sweet Home Chicago · The Thrill Is Gone · Pride and Joy · Red House · Born Under a Bad Sign · Hide Away · Stormy Monday · Texas Flood · Crossroads · Hoochie Coochie Man · Everyday I Have the Blues · Got My Mojo Working
 
@@ -98,7 +98,7 @@ Songs marked "can play" go into the player's repertoire; "know" songs are candid
 | F5 | Can you play a jazz blues (I–IV–I–vi–ii–V, ii–V into IV)? |
 | F6 | Can you play a Bird blues ("Blues for Alice" changes)? |
 
-### D. Feels — Multi: "Tap the feels you can play on demand"
+### D. Feels — Multi: "Choose the feels you can play on demand"
 
 Shuffle · Texas shuffle · Slow blues in 12/8 · Chicago · Rumba blues · Delta/acoustic fingerpicking · Boogie · Jump blues/swing · Funky straight-16ths blues
 
@@ -111,7 +111,7 @@ Shuffle · Texas shuffle · Slow blues in 12/8 · Chicago · Rumba blues · Delt
 | T3 | Can you play a I–VI–ii–V jazz turnaround? |
 | T4 | Can you play a tritone-sub turnaround? |
 
-Must-have skills — Multi: "Tap what you can do":
+Must-have skills — Multi: "Choose what you can do":
 - Bends in tune (whole step)
 - Controlled vibrato
 - Call and response with a singer
@@ -123,7 +123,7 @@ Must-have skills — Multi: "Tap what you can do":
 
 | ID | Type | Question | Grading |
 |---|---|---|---|
-| A1 | Multi | Over the **V chord in a blues turnaround**, what can you play? Tap all that work. | Minor pentatonic of the key (1) · V7 arpeggio (2) · Mixolydian of V (2) · Major pentatonic of V (2) · Half-whole diminished of V (3) · Altered of V (3) · "I just play the box" (0). **Level = highest weight picked**; follow-up Y/N: "Can you do that at tempo?" |
+| A1 | Multi | Over the **V chord in a blues turnaround**, what can you play? Choose all that work. | Minor pentatonic of the key (1) · V7 arpeggio (2) · Mixolydian of V (2) · Major pentatonic of V (2) · Half-whole diminished of V (3) · Altered of V (3) · "I just play the box" (0). **Level = highest weight picked**; follow-up Y/N: "Can you do that at tempo?" |
 | A2 ✓ | One | In an A blues, A7 → D7: the 3rd of A7 (C♯) moves a half step to which note of D7? | Root · 3rd · 5th · **♭7 (C)** |
 | A3 ✓ | One | Which note makes the classic B.B./Albert "major-minor" sound over A7? | **C (♭3) bending toward C♯ (3)** · E · G · F |
 
@@ -252,7 +252,7 @@ Each area is a ladder. **Start** marks the first question asked; the Know → Pl
 5. R5 Rhythmic variety: Freddie Green, Charleston, anticipations
 
 **Technique** (Multi + One)
-- *Multi — "Tap what you can do cleanly":* alternate picking · economy picking · legato · hybrid picking · sweep picking · tapping · string skipping · clean muting
+- *Multi — "Choose what you can do cleanly":* alternate picking · economy picking · legato · hybrid picking · sweep picking · tapping · string skipping · clean muting
 - *One — "Fastest clean 16th notes?":* under 80 · 80–100 · 100–120 · 120+ bpm
 
 **Timing and feel** (Multi — habits)
@@ -264,7 +264,7 @@ Each area is a ladder. **Start** marks the first question asked; the Know → Pl
 - Play behind or ahead of the beat on purpose
 - Record yourself and listen back
 
-*(Optional later: a tap-along timing test.)*
+*(Optional later: a play-along timing test.)*
 
 **Vocabulary**
 - *One — "How many licks can you play in any key?":* 0 · 1–5 · 6–20 · 20+
@@ -308,8 +308,8 @@ Tab · chord charts · Nashville number charts · lead sheets · standard notati
 | G5 | One | Days a week? | 3 · 4 · 5 · 6 · 7 |
 | G6 | Multi | Setup? | Phone · Tablet · Laptop · Electric unplugged · Amp · Acoustic · Headphone amp |
 | G7 | Optional | Songs you want to learn (up to 3) | Type-ahead; skip by default |
-| L1 | Multi | What do you already learn from? | YouTube transcriptions (tab on screen) · Lesson/tutorial videos · Tab sites · Books · A teacher · Learning by ear from records · Theory content |
-| L2 | One | When you learn a solo, you… | Read tab while listening · Ear first, then check · Slow it down and loop · A mix |
+| L1 | Multi | What do you already learn from? | YouTube transcriptions (tabs on screen) · Lesson/tutorial videos · Tab sites · Books · A teacher · Learning by ear from records · Theory content |
+| L2 | One | When you learn a solo, you… | Read tabs while listening · Ear first, then check · Slow it down and loop · A mix |
 | L3 | Y/N | Do you have a set practice routine right now? | If yes, One: Loose / Structured |
 
 ---
@@ -357,4 +357,4 @@ If the bank works, Clay's answers should produce roughly:
 2. **Spot checks:** tell the player when a missed one changes their result, or adjust quietly?
 3. **Drill feedback** ("too easy / just right / too hard"): after every drill, or once per session?
 4. **Artist and song lists:** mark up §4–5 — who's missing, who doesn't belong.
-5. **Tap once / tap twice** for know vs. can-play in grids: intuitive enough, or two separate screens?
+5. **Select once / select twice** for know vs. can-play in grids: intuitive enough, or two separate screens?

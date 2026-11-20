@@ -408,7 +408,7 @@ function pieceOption(text: string, label = 'Your goal'): PartOption {
   const { title, artist } = splitPiece(text)
   const lesson = lessonFor(text)
   return lesson
-    ? { label: title, sub: `${label} · lesson with tab and bar map`, url: `#/lessons/${lesson.id}`, kind: 'goal' }
+    ? { label: title, sub: `${label} · lesson with tabs and bar map`, url: `#/lessons/${lesson.id}`, kind: 'goal' }
     : { label: title, sub: `${label}${artist ? ` · ${artist}` : ''}`, url: transcription(title, artist), kind: 'goal' }
 }
 
@@ -481,7 +481,7 @@ function applicationPart(r: AssessmentResult, pick: Pick, week: number, gw: numb
     focus: milestone ? `Milestone: play “${title}” start to finish` : pieceText ? `Work on “${title}”, or pick another song` : 'Pick one song and learn it from a transcription',
     instruction: milestone
       ? `This is what the last few weeks were for. Play it all the way through, record it, and compare it with week 1.`
-      : `Learn it from a video with the tab on screen, then solo over it using only this week's idea${fw ? ` (${fw.concept.toLowerCase()})` : ''}.`,
+      : `Learn it from a video with the tabs on screen, then solo over it using only this week's idea${fw ? ` (${fw.concept.toLowerCase()})` : ''}.`,
     minutes: MIN.application,
     options: picks,
     lessonId: f.lessonId && !(pieceText && lessonFor(pieceText)) ? f.lessonId : undefined,

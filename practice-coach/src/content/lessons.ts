@@ -42,7 +42,7 @@ export const LESSONS: Lesson[] = [
       { label: 'Bar 7–8 fast run', a: 14.0, b: 19.5 },
       { label: 'Bar 10 fastest run', a: 20.0, b: 23.5 },
       { label: 'B7 outside moment', a: 12.0, b: 14.5 },
-      { label: 'C7 tap and resolve', a: 47.0, b: 52.0 },
+      { label: 'C7 touch and resolve', a: 47.0, b: 52.0 },
     ],
     theory: [
       'ii–V–i in A minor in bars 2–4; the bent E ties Dm7 to E7.',

@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon'
 import { navigate } from '../lib/router'
 import { useData } from '../store/store'
 
-/** The 10-minute tap flow. One question per screen; tapping an answer moves on. */
+/** The 10-minute offline flow. One question per screen; choosing an answer moves on. */
 export function Assessment() {
   const data = useData()
   const draft = data.assessment.draft
