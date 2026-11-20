@@ -106,9 +106,8 @@ export function resultsRequest(iv: AiInterview): ResultsRequest {
 }
 
 export function setResult(result: AiResult) {
-  const iv = getData().ai.interview
-  const minutes = Number(findAnswer(iv, /minutes|how long.*(day|session)/i)) || getData().settings.sessionLength
-  const days = Number(findAnswer(iv, /days a week|days per week/i)) || 5
+  const minutes = result.practice?.minutesPerDay || getData().settings.sessionLength
+  const days = result.practice?.daysPerWeek || 5
   update((x) => ({
     ...x,
     ai: {
@@ -118,14 +117,6 @@ export function setResult(result: AiResult) {
       build: { modules: result.modules, minutes: minutes >= 60 ? 60 : 30, days: Math.min(7, Math.max(3, days)) },
     },
   }))
-}
-
-function findAnswer(iv: AiInterview | null, re: RegExp): string | null {
-  if (!iv) return null
-  const t = [...iv.turns].reverse().find((t) => re.test(t.screen.prompt))
-  const a = t?.answer
-  if (typeof a === 'string') return a.replace(/\D+/g, '') || a
-  return null
 }
 
 /* ---------------- building the plan ---------------- */

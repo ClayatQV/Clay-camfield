@@ -51,7 +51,7 @@ export async function ask<S extends z.ZodType>(opts: {
     if (e instanceof Anthropic.AuthenticationError) throw new AiError(502, 'The AI key on the server is missing or invalid.')
     if (e instanceof Anthropic.RateLimitError) throw new AiError(503, 'The AI is busy right now. Try again in a moment.', true)
     if (e instanceof Anthropic.APIConnectionError) throw new AiError(503, 'Could not reach the AI service.', true)
-    if (e instanceof Anthropic.APIError) throw new AiError(502, `AI error (${e.status ?? '?'}).`, (e.status ?? 500) >= 500)
+    if (e instanceof Anthropic.APIError) throw new AiError(502, `AI error (${e.status ?? '?'}): ${String(e.message).replace(/sk-ant-[\w-]+/g, '[key]').slice(0, 300)}`, (e.status ?? 500) >= 500)
     throw new AiError(500, 'Unexpected AI error.')
   }
   if (res.stop_reason === 'refusal') throw new AiError(422, 'The AI declined this request.')

@@ -22,7 +22,7 @@ export async function interview(req: InterviewRequest): Promise<InterviewRespons
     system: interviewSystem(),
     user: interviewUser(req),
     schema: InterviewResponseSchema,
-    effort: 'medium',
+    effort: 'low',
     maxTokens: 4000,
   })
   // Hard stops the model must not exceed.

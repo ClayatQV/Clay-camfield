@@ -37,7 +37,7 @@ export const ScreenSchema = z.object({
 export type AiScreen = z.infer<typeof ScreenSchema>
 
 export const InterviewResponseSchema = z.object({
-  screens: z.array(ScreenSchema).min(0).max(3).describe('the next 1–3 screens; several only when the later ones do not depend on the earlier answers; empty when blockDone'),
+  screens: z.array(ScreenSchema).describe('at most 3: ' + 'the next 1–3 screens; several only when the later ones do not depend on the earlier answers; empty when blockDone'),
   blockDone: z.boolean().describe('true when this block has enough or its budget is spent'),
   summary: z
     .string()
@@ -66,9 +66,7 @@ export const ModuleSchema = z.object({
         lab: z.string().nullable().describe('Fretboard Lab preset query, e.g. "mode=chords&root=C&type=maj&voicing=close3&set=GBE&move=c4" — only from the allowed vocabulary'),
       }),
     )
-    .min(2)
-    .max(2)
-    .describe('two short daily warm-ups on the fundamentals this player needs (chords/voicings first, then arpeggios/scales/technique)'),
+    .describe('exactly two short daily warm-ups on the fundamentals this player needs (chords/voicings first, then arpeggios/scales/technique)'),
   concept: z.object({
     label: z.string(),
     instruction: z.string().describe('2–3 sentences: exactly what to do today'),
@@ -78,19 +76,17 @@ export const ModuleSchema = z.object({
     instruction: z.string(),
     songs: z
       .array(z.object({ title: z.string(), artist: z.string(), note: z.string().nullable() }))
-      .min(3)
-      .max(5)
-      .describe('3–5 real songs/solos to choose from: their named pieces first when relevant, songs from their genres, one discovery pick'),
+      .describe('3 to 5 real songs/solos to choose from: their named pieces first when relevant, songs from their genres, one discovery pick'),
   }),
-  doneWhen: z.array(z.string()).min(2).max(3).describe('concrete, checkable'),
+  doneWhen: z.array(z.string()).describe('2 or 3 concrete, checkable checks'),
 })
 export type AiModule = z.infer<typeof ModuleSchema>
 
 export const ResultSchema = z.object({
   profile: z.object({
     type: z.string().describe('a player type in 2–5 words, e.g. "Feel-First Soul Player"'),
-    read: z.array(z.string()).min(3).max(7).describe('short honest sentences: strengths, the biggest know-but-don\'t-use gap, the one unlock, next steps. No flattery.'),
-    trust: z.number().min(0).max(1).describe('how much the self-reports were confirmed by the quick checks (1 = fully)'),
+    read: z.array(z.string()).describe('3 to 7 short honest sentences: strengths, the biggest know-but-don\'t-use gap, the one unlock, next steps. No flattery.'),
+    trust: z.number().describe('0 to 1: how much the self-reports were confirmed by the quick checks (1 = fully)'),
   }),
   vision: z.object({
     statement: z.string(),
@@ -115,21 +111,21 @@ export const ResultSchema = z.object({
         evidence: z.string().describe('what they said or got right/wrong that supports this'),
       }),
     )
-    .min(8)
-    .max(24)
-    .describe('the skills that matter for this player, with honest 0–5 levels'),
+    .describe('8 to 24 skills that matter for this player, with honest 0–5 levels'),
   gaps: z
     .array(z.object({ skill: z.string(), from: LevelSchema, to: LevelSchema, why: z.string() }))
-    .min(2)
-    .max(8)
-    .describe('ordered: the gaps that unlock their vision first'),
+    .describe('2 to 8, ordered: the gaps that unlock their vision first'),
   taste: z.object({
     genres: z.array(z.object({ id: z.string(), name: z.string(), rank: z.number().int(), depth: z.string().describe('"deep" / "solid" / "listening first"') })),
     dimensions: z.array(z.object({ name: z.string(), lean: z.string() })).describe('e.g. harmonically sophisticated ↔ raw, groove ↔ lead, clean ↔ gritty, vintage ↔ modern, composed ↔ improvised'),
     inspires: z.array(z.string()).describe('what lights this player up, in their words where possible'),
-    listening: z.array(z.object({ artist: z.string(), genre: z.string(), why: z.string() })).max(10),
+    listening: z.array(z.object({ artist: z.string(), genre: z.string(), why: z.string() })).describe('up to 10'),
   }),
-  modules: z.array(ModuleSchema).min(4).max(10).describe('the recommended curriculum in order; 1–3 weeks each; the player will keep, swap, drop, reorder'),
+  practice: z.object({
+    minutesPerDay: z.number().int().describe('from their answer; 30 or 60 if unsure'),
+    daysPerWeek: z.number().int().describe('from their answer; 3–7'),
+  }),
+  modules: z.array(ModuleSchema).describe('4 to 10 modules, the recommended curriculum in order; 1–3 weeks each; the player will keep, swap, drop, reorder'),
 })
 export type AiResult = z.infer<typeof ResultSchema>
 

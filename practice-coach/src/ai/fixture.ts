@@ -155,5 +155,6 @@ export const FIXTURE_RESULT: AiResult = {
       { artist: 'Cornell Dupree', genre: 'Soul / R&B', why: 'The fills behind singers you want to play.' },
     ],
   },
+  practice: { minutesPerDay: 60, daysPerWeek: 7 },
   modules: FIXTURE_MODULES,
 }
