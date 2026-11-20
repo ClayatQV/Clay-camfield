@@ -4,7 +4,7 @@
  * behind a passcode set on the server (APP_PASSCODE).
  */
 import type { z } from 'zod'
-import { AiError } from './claude.ts'
+import { AiError } from './claude'
 
 export const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extra } })

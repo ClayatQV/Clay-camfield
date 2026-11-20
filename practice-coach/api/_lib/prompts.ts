@@ -3,8 +3,8 @@
  * rules. These encode Clay's method. A readable copy lives in
  * docs/interviewer-rules.md — keep the two in step.
  */
-import { LAB_VOCAB_TEXT } from './lab-vocab.ts'
-import type { BlockId, Turn } from './schemas.ts'
+import { LAB_VOCAB_TEXT } from './lab-vocab'
+import type { BlockId, Turn } from './schemas'
 
 export const BLOCK_BUDGET: Record<BlockId, { screens: number; minutes: number; name: string }> = {
   skills: { screens: 16, minutes: 3, name: 'Skills' },

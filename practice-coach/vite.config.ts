@@ -51,6 +51,35 @@ function swPrecache(): Plugin {
  */
 function apiMount(): Plugin {
   let root = process.cwd()
+  const built = new Map<string, { mtime: number; url: string }>()
+  /** Bundle one api/<name>.ts with esbuild (deps external) so Node can import it, regardless of TS import style. */
+  const load = async (name: string) => {
+    const src = path.join(root, 'api', `${name}.ts`)
+    const stat = fs.statSync(src)
+    const deps = fs.readdirSync(path.join(root, 'api', '_lib')).map((f) => fs.statSync(path.join(root, 'api', '_lib', f)).mtimeMs)
+    const mtime = Math.max(stat.mtimeMs, ...deps)
+    const hit = built.get(name)
+    if (hit && hit.mtime === mtime) return import(hit.url)
+    const { build: viteBuild } = await import('vite')
+    const outDir = path.join(root, 'node_modules', '.api-dev', name)
+    const stamp = String(Math.round(mtime))
+    await viteBuild({
+      configFile: false,
+      root,
+      logLevel: 'silent',
+      build: {
+        ssr: src,
+        outDir,
+        emptyOutDir: true,
+        minify: false,
+        rollupOptions: { output: { entryFileNames: `${name}.${stamp}.mjs`, format: 'es' } },
+      },
+    })
+    const outfile = path.join(outDir, `${name}.${stamp}.mjs`)
+    const url = pathToFileURL(outfile).href
+    built.set(name, { mtime, url })
+    return import(url)
+  }
   const mount = (server: { middlewares: { use: (fn: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, next: () => void) => void) => void } }) => {
     server.middlewares.use((req, res, next) => {
       const url = req.url ?? ''
@@ -58,8 +87,7 @@ function apiMount(): Plugin {
       const name = url.slice(5).split('?')[0].replace(/[^a-z-]/g, '')
       void (async () => {
         try {
-          const file = pathToFileURL(path.join(root, 'api', `${name}.ts`)).href
-          const mod = (await import(file)) as { default: (r: Request) => Promise<Response> }
+          const mod = (await load(name)) as { default: (r: Request) => Promise<Response> }
           const chunks: Buffer[] = []
           for await (const c of req) chunks.push(c as Buffer)
           const headers = new Headers()

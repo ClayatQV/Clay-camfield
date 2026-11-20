@@ -1,4 +1,4 @@
-import { json, route } from './_lib/http.ts'
+import { json, route } from './_lib/http'
 
 /** GET /api/health → is the AI coach configured? (no passcode needed; reveals nothing secret) */
 export default route(

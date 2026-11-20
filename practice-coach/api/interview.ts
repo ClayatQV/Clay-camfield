@@ -1,6 +1,6 @@
-import { interview } from './_lib/handlers.ts'
-import { json, readBody, route } from './_lib/http.ts'
-import { InterviewRequestSchema } from './_lib/schemas.ts'
+import { interview } from './_lib/handlers'
+import { json, readBody, route } from './_lib/http'
+import { InterviewRequestSchema } from './_lib/schemas'
 
 export const maxDuration = 60
 

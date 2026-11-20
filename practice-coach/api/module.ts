@@ -1,6 +1,6 @@
-import { module as writeModule } from './_lib/handlers.ts'
-import { json, readBody, route } from './_lib/http.ts'
-import { ModuleRequestSchema } from './_lib/schemas.ts'
+import { module as writeModule } from './_lib/handlers'
+import { json, readBody, route } from './_lib/http'
+import { ModuleRequestSchema } from './_lib/schemas'
 
 export const maxDuration = 60
 

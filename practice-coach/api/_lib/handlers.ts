@@ -2,9 +2,9 @@
  * The three AI routes as plain functions (input → output), so Vercel
  * functions and the local Vite dev server run the same code.
  */
-import { ask } from './claude.ts'
-import { cleanLabQuery } from './lab-vocab.ts'
-import { BLOCK_BUDGET, interviewSystem, interviewUser, moduleSystem, moduleUser, resultsSystem, resultsUser } from './prompts.ts'
+import { ask } from './claude'
+import { cleanLabQuery } from './lab-vocab'
+import { BLOCK_BUDGET, interviewSystem, interviewUser, moduleSystem, moduleUser, resultsSystem, resultsUser } from './prompts'
 import {
   InterviewResponseSchema,
   ModuleSchema,
@@ -15,7 +15,7 @@ import {
   type InterviewResponse,
   type ModuleRequest,
   type ResultsRequest,
-} from './schemas.ts'
+} from './schemas'
 
 export async function interview(req: InterviewRequest): Promise<InterviewResponse> {
   const out = await ask({
