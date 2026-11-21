@@ -17,7 +17,20 @@ export class AiClientError extends Error {
 
 const base = () => (import.meta.env.BASE_URL === './' ? '' : import.meta.env.BASE_URL.replace(/\/$/, ''))
 
+/** One automatic retry on a retryable failure (busy AI, dropped connection, a structured answer that failed to parse). All AI routes are stateless, so a retry is safe. */
 async function call<T>(path: string, body: unknown, passcode?: string): Promise<T> {
+  try {
+    return await once<T>(path, body, passcode)
+  } catch (e) {
+    if (e instanceof AiClientError && e.retryable && path !== 'auth') {
+      await new Promise((r) => setTimeout(r, 1500))
+      return once<T>(path, body, passcode)
+    }
+    throw e
+  }
+}
+
+async function once<T>(path: string, body: unknown, passcode?: string): Promise<T> {
   const code = passcode ?? getData().ai.passcode
   let res: Response
   try {
