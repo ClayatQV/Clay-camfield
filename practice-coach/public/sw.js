@@ -6,12 +6,14 @@ const CACHE = 'practice-coach-' + VERSION
 const PRECACHE = ['__PRECACHE__']
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((c) => c.addAll(PRECACHE.filter((p) => p !== '__PRECACHE__')))
-      .then(() => self.skipWaiting()),
-  )
+  // Precache, then WAIT. Taking over while the app is open would delete the
+  // running version's cache mid-session (the page went blank during results).
+  // The page sends SKIP_WAITING when the player presses Reload on the banner.
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE.filter((p) => p !== '__PRECACHE__'))))
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {

@@ -12,21 +12,23 @@ import type { GeneratedPlan, Milestone, PlanBlock } from './model'
 /** Part lengths as a share of the session: two short warm-ups, the idea, about half on a song. */
 const RATIO = { triads: 0.16, arps: 0.16, concept: 0.2, application: 0.48 } as const
 type Mins = { 30: number; 60: number }
+/** The `60` key is the plan's FULL session (whatever the player chose on the Build page); `30` is a short day, about half. */
 function minsFor(part: keyof typeof RATIO, sessionMinutes: number): Mins {
-  const long = Math.max(60, sessionMinutes)
-  return { 30: Math.max(1, Math.round(30 * RATIO[part])), 60: Math.max(1, Math.round(long * RATIO[part])) }
+  const full = Math.max(10, sessionMinutes)
+  const short = Math.max(5, Math.round(full / 2))
+  return { 30: Math.max(1, Math.round(short * RATIO[part])), 60: Math.max(1, Math.round(full * RATIO[part])) }
 }
 
 const search = (title: string, artist: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist} guitar transcription tab`.trim())}`
-const recording = (title: string, artist: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist}`.trim())}`
+const earPage = (title: string, artist: string) => `#/ear?${new URLSearchParams({ title, artist }).toString()}`
 
 /** Where a module song sends the player: the lesson (tabs on screen, looper) when the library has it; the record for by-ear pieces; else a transcription search. */
 export function songLink(s: { title: string; artist: string; how?: 'transcription' | 'ear' | null }): { url: string; via: 'lesson' | 'ear' | 'search' } {
   const t = findTranscription(s.title, s.artist)
   const lesson = t && LESSONS.find((l) => l.id === t.id || l.youtubeId === t.youtubeId)
   if (lesson) return { url: `#/lessons/${lesson.id}`, via: 'lesson' }
-  if (s.how === 'ear') return { url: recording(s.title, s.artist), via: 'ear' }
+  if (s.how === 'ear') return { url: earPage(s.title, s.artist), via: 'ear' }
   return { url: search(s.title, s.artist), via: 'search' }
 }
 
@@ -92,7 +94,7 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
       const ordered = [...songs.slice(rot), ...songs.slice(0, rot)]
       const options: PartOption[] = ordered.map((s) => {
         const link = songLink(s)
-        const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'by ear from the record · loop it slow' : null
+        const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'learn it by ear · guide + looper' : null
         return {
           label: s.title,
           sub: [s.artist, via, s.note].filter(Boolean).join(' · ') || undefined,

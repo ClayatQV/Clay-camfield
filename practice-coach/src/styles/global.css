@@ -584,6 +584,66 @@ table.plain th {
 }
 
 /* ---------------- Today ---------------- */
+.practice-bar {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.stepper .step {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.stepper .step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.stepper .step-t {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.15;
+}
+.stepper .step-m {
+  font-size: 0.72rem;
+}
+.stepper .step.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.stepper .step.done .step-n {
+  background: var(--accent);
+  color: #fff;
+}
+.stepper .step.running .step-n {
+  background: var(--amber);
+  color: #16120e;
+}
+.guided-nav .btn {
+  min-height: 52px;
+}
 .part h3 {
   font-size: 1.05rem;
 }
@@ -1821,4 +1881,35 @@ a.chip {
 }
 .link-row.as-button.on {
   background: var(--surface-2);
+}
+
+/* ---------------- learn it by ear ---------------- */
+.moments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.moment-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.moment-row.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+table.skeleton {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+table.skeleton td {
+  padding: 6px 8px 6px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
 }

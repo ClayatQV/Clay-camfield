@@ -55,7 +55,10 @@ export async function ask<S extends z.ZodType>(opts: {
     if (e instanceof Anthropic.RateLimitError) throw new AiError(503, 'The AI is busy right now. Try again in a moment.', true)
     if (e instanceof Anthropic.APIConnectionError) throw new AiError(503, 'Could not reach the AI service.', true)
     if (e instanceof Anthropic.APIError) throw new AiError(502, `AI error (${e.status ?? '?'}): ${String(e.message).replace(/sk-ant-[\w-]+/g, '[key]').slice(0, 300)}`, (e.status ?? 500) >= 500)
-    throw new AiError(500, 'Unexpected AI error.')
+    // Not an API error: usually the structured output failed to parse, or a refusal came back.
+    const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e)
+    console.error('ask() failed:', msg)
+    throw new AiError(500, `Unexpected AI error (${msg.replace(/sk-ant-[\w-]+/g, '[key]').slice(0, 200)}).`, true)
   }
   if (res.stop_reason === 'refusal') throw new AiError(422, 'The AI declined this request.')
   if (res.stop_reason === 'max_tokens') throw new AiError(502, 'The AI answer was cut off. Try again.', true)

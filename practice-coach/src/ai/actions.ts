@@ -143,7 +143,8 @@ export function applyBuild(): boolean {
     ...x,
     previousPlan: { plan: x.plan, planStart: x.settings.planStart, override: x.settings.override },
     plan,
-    settings: { ...x.settings, planStart: todayKey(), override: null, sessionLength: ai.build!.minutes > 45 ? 60 : 30 },
+    // The plan's full length is what they chose on the Build page; "30" is the short-day mode.
+    settings: { ...x.settings, planStart: todayKey(), override: null, sessionLength: 60 },
   }))
   return true
 }

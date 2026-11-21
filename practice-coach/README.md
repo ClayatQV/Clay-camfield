@@ -13,7 +13,7 @@ Clay's daily guitar practice app (prototype v0.1). Desktop-first and also works 
 
 ## The AI coach
 
-The assessment and curriculum are run by an AI coach (Claude) through small server functions in `api/` (`interview`, `results`, `modules`, `module`, `auth`, `health`). The rules it follows are in `docs/interviewer-rules.md`; open design questions in `docs/open-questions.md`. It needs two settings on the server (Vercel → Project → Settings → Environment Variables):
+The assessment and curriculum are run by an AI coach (Claude) through small server functions in `api/` (`interview`, `results`, `modules`, `module`, `ear`, `auth`, `health`). The rules it follows are in `docs/interviewer-rules.md`; open design questions in `docs/open-questions.md`. It needs two settings on the server (Vercel → Project → Settings → Environment Variables):
 
 | Variable | What |
 |---|---|

@@ -11,7 +11,7 @@ import { isValidKey, todayKey, type DayKey } from '../lib/dates'
 import type { Answers } from '../assessment/types'
 import type { AssessmentResult } from '../assessment/scoring'
 import type { GeneratedPlan } from '../plan/model'
-import type { AiModule, AiResult, AiScreen, BlockId } from '../../api/_lib/schemas'
+import type { AiModule, AiResult, AiScreen, BlockId, EarGuide } from '../../api/_lib/schemas'
 
 export const STORAGE_KEY = 'practice-coach'
 export const LAB_STORAGE_KEY = 'fretboard-lab'
@@ -41,6 +41,8 @@ export type Settings = {
   /** Pinned block/week. null = computed from planStart. */
   override: { block: number; week: number } | null
   sessionLength: LengthMode
+  /** Practice page: one part at a time (true) or all four cards (false). */
+  guided: boolean
   dadPhone: string
   theme: Theme
   ladderPasses: number
@@ -107,6 +109,17 @@ export type AiState = {
   build: { modules: AiModule[]; minutes: number; days: number } | null
 }
 
+/** A piece the player is learning by ear: the video they chose, the sections they marked, the coach's guide. */
+export type EarPiece = {
+  title: string
+  artist: string
+  youtubeId: string | null
+  about: string
+  sections: Moment[]
+  guide: EarGuide | null
+  guideAt: string | null
+}
+
 export type AppData = {
   version: number
   settings: Settings
@@ -116,6 +129,8 @@ export type AppData = {
   doneWhen: Record<string, boolean>
   /** Custom moments per lesson (replaces the defaults when present). */
   moments: Record<string, Moment[]>
+  /** Learn-by-ear pieces, keyed by earKey(title, artist). */
+  ear: Record<string, EarPiece>
   draft: Draft | null
   labTime: LabTime
   assessment: AssessmentState
@@ -135,6 +150,7 @@ export function defaultData(): AppData {
       planStart: todayKey(),
       override: null,
       sessionLength: 30,
+      guided: true,
       dadPhone: '',
       theme: 'system',
       ladderPasses: 4,
@@ -143,6 +159,7 @@ export function defaultData(): AppData {
     lessonState: {},
     doneWhen: {},
     moments: {},
+    ear: {},
     draft: null,
     labTime: {},
     assessment: { draft: null, results: [], dismissedPrompt: false },
@@ -193,6 +210,7 @@ export function normalize(raw: unknown): AppData {
     override:
       ov && Number(ov.block) >= 1 && Number(ov.week) >= 1 ? { block: Math.round(Number(ov.block)), week: Math.round(Number(ov.week)) } : null,
     sessionLength: s.sessionLength === 60 ? 60 : 30,
+    guided: s.guided !== false,
     dadPhone: typeof s.dadPhone === 'string' ? s.dadPhone : '',
     theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : 'system',
     ladderPasses: Math.min(20, Math.max(1, Math.round(Number(s.ladderPasses) || 4))),
@@ -213,6 +231,22 @@ export function normalize(raw: unknown): AppData {
     }
   }
   if (isObj(raw.doneWhen)) for (const [k, v] of Object.entries(raw.doneWhen)) if (v) d.doneWhen[k] = true
+  if (isObj(raw.ear)) {
+    for (const [k, v] of Object.entries(raw.ear)) {
+      if (!isObj(v) || typeof v.title !== 'string') continue
+      d.ear[k] = {
+        title: v.title,
+        artist: typeof v.artist === 'string' ? v.artist : '',
+        youtubeId: typeof v.youtubeId === 'string' && v.youtubeId ? v.youtubeId : null,
+        about: typeof v.about === 'string' ? v.about : '',
+        sections: Array.isArray(v.sections)
+          ? (v.sections.filter((m) => isObj(m) && typeof m.label === 'string' && Number.isFinite(Number(m.a)) && Number.isFinite(Number(m.b))) as unknown as Moment[])
+          : [],
+        guide: isObj(v.guide) && isObj(v.guide.underlying) && Array.isArray(v.guide.sections) ? (v.guide as unknown as EarGuide) : null,
+        guideAt: typeof v.guideAt === 'string' ? v.guideAt : null,
+      }
+    }
+  }
   if (isObj(raw.moments)) {
     for (const [id, list] of Object.entries(raw.moments)) {
       if (!Array.isArray(list)) continue
@@ -431,4 +465,9 @@ export function importBackup(text: string): string {
 export function resetAll() {
   writeStorage(LAB_STORAGE_KEY, null)
   setData(defaultData())
+}
+
+/** Store key for a learn-by-ear piece. */
+export function earKey(title: string, artist: string): string {
+  return `${title}|${artist}`.toLowerCase().replace(/[’'"().,!?]/g, '').replace(/\s+/g, ' ').trim()
 }

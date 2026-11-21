@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { PartId, SessionPart } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { Icon } from '../components/Icon'
@@ -25,7 +25,7 @@ import {
   toggleDone,
   totalElapsed,
 } from '../store/actions'
-import { useData, type LengthMode } from '../store/store'
+import { updateSettings, useData, type LengthMode } from '../store/store'
 
 export function Today() {
   const data = useData()
@@ -69,8 +69,25 @@ export function Today() {
   }, [now, running, active, parts, lengthMode])
 
   const targetTotal = parts.reduce((s, p) => s + p.minutes[lengthMode], 0)
+  const totals = { 30: parts.reduce((s, p) => s + p.minutes[30], 0), 60: parts.reduce((s, p) => s + p.minutes[60], 0) }
   const total = totalElapsed(active, now)
   const doneCount = active ? PART_IDS.filter((p) => active.done[p]).length : 0
+  const guided = data.settings.guided
+  const partProps = (p: SessionPart, i: number) => ({
+    index: i + 1,
+    part: p,
+    lengthMode,
+    seconds: elapsedOf(active, p.id, now),
+    running: running === p.id,
+    done: !!active?.done[p.id],
+    onToggleRun: () => {
+      primeAudio()
+      if (running === p.id) pauseAll(today)
+      else startPart(today, p.id)
+    },
+    onToggleDone: () => toggleDone(today, p.id),
+    onReset: () => resetPartClock(today, p.id),
+  })
 
   return (
     <div className="screen">
@@ -132,13 +149,22 @@ export function Today() {
         </div>
       )}
 
-      <div className="row-between">
+      <div className="row-between practice-bar">
         <div className="seg" role="group" aria-label="Session length">
-          {([30, 60] as const).map((m) => (
-            <button key={m} aria-pressed={lengthMode === m} onClick={() => setLengthMode(today, m)} disabled={!!stale}>
-              {m} min
-            </button>
-          ))}
+          <button aria-pressed={lengthMode === 30} onClick={() => setLengthMode(today, 30)} disabled={!!stale}>
+            Short · {totals[30]} min
+          </button>
+          <button aria-pressed={lengthMode === 60} onClick={() => setLengthMode(today, 60)} disabled={!!stale}>
+            Full · {totals[60]} min
+          </button>
+        </div>
+        <div className="seg" role="group" aria-label="Practice page mode">
+          <button aria-pressed={guided} onClick={() => updateSettings({ guided: true })} title="One part at a time">
+            Guided
+          </button>
+          <button aria-pressed={!guided} onClick={() => updateSettings({ guided: false })} title="All four parts">
+            List
+          </button>
         </div>
         <div className="mono small muted" aria-label="Total time">
           {formatClock(total)} / {targetTotal}:00
@@ -151,26 +177,31 @@ export function Today() {
         </p>
       )}
 
-      <div className="stack parts-grid" style={stale ? { opacity: 0.5, pointerEvents: 'none' } : undefined} aria-disabled={!!stale}>
-        {parts.map((p, i) => (
-          <PartCard
-            key={p.id}
-            index={i + 1}
-            part={p}
-            lengthMode={lengthMode}
-            seconds={elapsedOf(active, p.id, now)}
-            running={running === p.id}
-            done={!!active?.done[p.id]}
-            onToggleRun={() => {
-              primeAudio()
-              if (running === p.id) pauseAll(today)
-              else startPart(today, p.id)
-            }}
-            onToggleDone={() => toggleDone(today, p.id)}
-            onReset={() => resetPartClock(today, p.id)}
-          />
-        ))}
-      </div>
+      {guided ? (
+        <GuidedSession
+          parts={parts}
+          lengthMode={lengthMode}
+          done={PART_IDS.map((p) => !!active?.done[p])}
+          running={running}
+          seconds={(p) => elapsedOf(active, p, now)}
+          disabled={!!stale}
+          renderPart={(p, i) => <PartCard key={p.id} {...partProps(p, i)} />}
+          onNext={(p) => {
+            if (!active?.done[p.id]) toggleDone(today, p.id)
+            else if (running === p.id) pauseAll(today)
+          }}
+          onFinish={() => {
+            if (running) pauseAll(today)
+            setFinishing(true)
+          }}
+        />
+      ) : (
+        <div className="stack parts-grid" style={stale ? { opacity: 0.5, pointerEvents: 'none' } : undefined} aria-disabled={!!stale}>
+          {parts.map((p, i) => (
+            <PartCard key={p.id} {...partProps(p, i)} />
+          ))}
+        </div>
+      )}
 
       {!finishing && !stale && (
         <button
@@ -217,6 +248,89 @@ export function Today() {
       )}
 
       {todaysSessions.length > 0 && live && <ShareCard sessions={todaysSessions} streak={stats.current} today={today} phone={data.settings.dadPhone} compact />}
+    </div>
+  )
+}
+
+/**
+ * One part at a time: a stepper, the current part's card, and Next. Timers
+ * start when the player presses play; Next checks the part off and moves on.
+ */
+function GuidedSession(props: {
+  parts: SessionPart[]
+  lengthMode: LengthMode
+  done: boolean[]
+  running: PartId | null
+  seconds: (p: PartId) => number
+  disabled: boolean
+  renderPart: (p: SessionPart, i: number) => ReactNode
+  onNext: (p: SessionPart) => void
+  onFinish: () => void
+}) {
+  const { parts, done, lengthMode } = props
+  const firstOpen = Math.max(0, done.findIndex((d) => !d))
+  const [step, setStep] = useState(done.every(Boolean) ? parts.length - 1 : firstOpen)
+  const i = Math.min(step, parts.length - 1)
+  const part = parts[i]
+  const last = i === parts.length - 1
+  const target = part.minutes[lengthMode] * 60
+  const secs = props.seconds(part.id)
+  const timeUp = secs >= target && target > 0
+  const allDone = done.every(Boolean)
+
+  return (
+    <div className="stack guided" style={props.disabled ? { opacity: 0.5, pointerEvents: 'none' } : undefined} aria-disabled={props.disabled}>
+      <ol className="stepper" aria-label="Session parts">
+        {parts.map((p, k) => (
+          <li key={p.id}>
+            <button
+              className={`step${k === i ? ' current' : ''}${done[k] ? ' done' : ''}${props.running === p.id ? ' running' : ''}`}
+              onClick={() => setStep(k)}
+              aria-current={k === i ? 'step' : undefined}
+            >
+              <span className="step-n">{done[k] ? <Icon name="check" size={14} /> : k + 1}</span>
+              <span className="step-t">{p.title}</span>
+              <span className="step-m small muted">{p.minutes[lengthMode]} min</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+
+      {props.renderPart(part, i)}
+
+      {timeUp && !done[i] && (
+        <div className="card flat small" style={{ borderColor: 'var(--accent)' }}>
+          Time's up for this part. Keep going if you're in it, or move on.
+        </div>
+      )}
+
+      <div className="row guided-nav">
+        <button className="btn" onClick={() => setStep(Math.max(0, i - 1))} disabled={i === 0}>
+          ‹ Back
+        </button>
+        {last || allDone ? (
+          <button
+            className="btn primary grow big"
+            onClick={() => {
+              if (!done[i]) props.onNext(part)
+              props.onFinish()
+            }}
+          >
+            <Icon name="check" /> {done[i] ? 'Finish session' : 'Done · finish session'}
+          </button>
+        ) : (
+          <button
+            className="btn primary grow big"
+            onClick={() => {
+              props.onNext(part)
+              setStep(i + 1)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
+            {done[i] ? 'Next part' : 'Done · next part'} ›
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -272,7 +386,7 @@ function PartCard(props: {
                 <strong>{o.label}</strong>
                 {o.sub && <span className="small muted"> · {o.sub}</span>}
               </span>
-              <Icon name={o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
+              <Icon name={o.url.startsWith('#/ear') ? 'play' : o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#/ear') ? 'Learn it by ear' : o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
             </a>
           ))}
         </div>

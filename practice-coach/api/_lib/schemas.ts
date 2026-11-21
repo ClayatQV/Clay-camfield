@@ -181,6 +181,51 @@ export const ModulesRequestSchema = z.object({
 })
 export type ModulesRequest = z.infer<typeof ModulesRequestSchema>
 
+/* ---------------- learn it by ear ---------------- */
+
+export const EarGuideSchema = z.object({
+  piece: z.object({ title: z.string(), artist: z.string() }),
+  confidence: z.enum(['high', 'medium', 'low']).describe('how well you know THIS recording/performance from memory'),
+  honesty: z.string().describe('one sentence: you cannot hear the recording; what below is from memory and what the player must verify by ear'),
+  underlying: z
+    .object({
+      song: z.string(),
+      by: z.string().describe('writer or original artist'),
+      key: z.string().nullable(),
+      meter: z.string().nullable(),
+      form: z.string().nullable().describe('e.g. "AABA, 32 bars" or "verse / bridge / verse, 3/4"'),
+      hasTranscriptions: z.boolean().describe('true when the ORIGINAL song is widely transcribed (tabs on screen videos very likely exist)'),
+      learnFirst: z.string().describe('what to learn from the original first and why; "" if the piece is itself the original'),
+    })
+    .describe('the song underneath the performance; the skeleton every arrangement hangs on'),
+  skeleton: z
+    .array(z.object({ section: z.string(), bars: z.string().nullable(), chords: z.string(), note: z.string().nullable() }))
+    .describe("the song's form by section with the original changes; what the player loops against"),
+  sections: z
+    .array(
+      z.object({
+        label: z.string().describe('section of the performance, named by the form (e.g. "Verse 1", "Bridge", "Outro cadenza")'),
+        listenFor: z.array(z.string()).describe('2–4 concrete things to listen for: bass movement, chord quality changes, where fills sit, rhythmic feel'),
+        tryThis: z.string().describe('one instruction for working this section out by ear'),
+        lab: z.string().nullable().describe('Fretboard Lab preset for the chord tones or scale that section lives on; vocabulary only'),
+      }),
+    )
+    .describe('3–8 sections, in order'),
+  tips: z.array(z.string()).describe('2–5 tips specific to this player/performance (e.g. a left-handed upside-down player: copy the sound, never the hands; which speed to loop at)'),
+  doneWhen: z.array(z.string()).describe('2–3 checks you can hear: "play the verse along with the video at 0.75×"'),
+})
+export type EarGuide = z.infer<typeof EarGuideSchema>
+
+export const EarRequestSchema = z.object({
+  title: z.string().min(1).max(200),
+  artist: z.string().max(200),
+  /** a line from the player about the performance (where it came from, what they love about it) */
+  about: z.string().max(400).nullable().optional(),
+  /** optional player context: genres, level words, what they want from it */
+  context: z.string().max(600).nullable().optional(),
+})
+export type EarRequest = z.infer<typeof EarRequestSchema>
+
 export const ModuleRequestSchema = z.object({
   request: z.string().min(2).max(300).describe('what the player wants to work on, in their words'),
   result: z.record(z.string(), z.unknown()).describe('the player\'s results (profile, vision, skills, gaps, taste)'),

@@ -4,8 +4,11 @@
  */
 import { ask } from './claude.js'
 import { cleanLabQuery } from './lab-vocab.js'
-import { BLOCK_BUDGET, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
+import { BLOCK_BUDGET, earSystem, earUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
 import {
+  EarGuideSchema,
+  type EarGuide,
+  type EarRequest,
   InterviewResponseSchema,
   ModuleSchema,
   ModulesSchema,
@@ -75,6 +78,12 @@ export async function results(req: ResultsRequest): Promise<AiResultCore> {
 export async function modules(req: ModulesRequest): Promise<AiModule[]> {
   const out = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core: req.core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000, fast: true })
   return out.modules.map(cleanModule)
+}
+
+/** A learn-it-by-ear guide for a piece with no transcription. */
+export async function ear(req: EarRequest): Promise<EarGuide> {
+  const out = await ask({ system: earSystem(), user: earUser(req), schema: EarGuideSchema, effort: 'medium', maxTokens: 5000, fast: true })
+  return { ...out, sections: out.sections.map((s) => ({ ...s, lab: cleanLabQuery(s.lab) })) }
 }
 
 export async function module(req: ModuleRequest): Promise<AiModule> {

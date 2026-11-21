@@ -163,11 +163,24 @@ export function Settings() {
         <div className="field">
           <span className="label">Default session length</span>
           <div className="seg full" role="group" aria-label="Default session length">
-            {([30, 60] as const).map((m) => (
-              <button key={m} aria-pressed={s.sessionLength === m} onClick={() => updateSettings({ sessionLength: m })}>
-                {m} min
-              </button>
-            ))}
+            <button aria-pressed={s.sessionLength === 30} onClick={() => updateSettings({ sessionLength: 30 })}>
+              Short day
+            </button>
+            <button aria-pressed={s.sessionLength === 60} onClick={() => updateSettings({ sessionLength: 60 })}>
+              Full
+            </button>
+          </div>
+          <p className="small muted">Full is the length your plan was built for. Short day is about half, same four parts.</p>
+        </div>
+        <div className="field">
+          <span className="label">Practice page</span>
+          <div className="seg full" role="group" aria-label="Practice page mode">
+            <button aria-pressed={s.guided} onClick={() => updateSettings({ guided: true })}>
+              Guided · one part at a time
+            </button>
+            <button aria-pressed={!s.guided} onClick={() => updateSettings({ guided: false })}>
+              List · all four
+            </button>
           </div>
         </div>
         <div className="field">

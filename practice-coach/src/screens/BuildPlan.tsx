@@ -225,11 +225,7 @@ export function BuildPlan() {
                       const link = songLink(s)
                       return (
                         <li key={`${s.title}|${s.artist}`}>
-                          {link.via === 'lesson' ? (
-                            <a href={link.url}>{s.title}</a>
-                          ) : (
-                            s.title
-                          )}{' '}
+                          {link.via === 'lesson' || link.via === 'ear' ? <a href={link.url}>{s.title}</a> : s.title}{' '}
                           <span className="muted">({s.artist})</span>
                           {link.via === 'lesson' && <span className="pill"> tabs on screen</span>}
                           {link.via === 'ear' && <span className="pill amber"> by ear</span>}

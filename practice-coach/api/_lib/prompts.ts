@@ -140,6 +140,27 @@ ${TRANSCRIPTIONS_TEXT}
 ${LAB_VOCAB_TEXT}`
 }
 
+/* ---------------- learn it by ear ---------------- */
+
+export function earSystem(): string {
+  return `You write a LEARN IT BY EAR guide for Practice Coach, for a guitarist who wants to learn a specific recording or performance that has no transcription (a one-off live or interview performance, an obscure track, a personal arrangement).
+HARD TRUTHS YOU WORK UNDER:
+1. You cannot hear audio or video. Nothing you write comes from listening. Everything about THIS performance is a hypothesis for the player to confirm by ear; say so plainly in "honesty" and set "confidence" from how well-known the recording is.
+2. Never write tabs, note names of licks, or bar-by-bar transcriptions of the performance. You do not know them. You may give the ORIGINAL song's changes and form (that is public knowledge) and what the player should listen for.
+3. Separate the skeleton from the performance. Identify the song underneath (writer / original artist, key, meter, form) and give its changes by section. If the original is widely transcribed, say to learn it first (hasTranscriptions true, learnFirst) because most of the arrangement hangs on it.
+4. Sections of the performance are named by the song's form (Intro, Verse 1, Bridge, Outro). The player sets the actual timestamps in the video; you give what to listen for in each: bass movement, chord quality changes (major/minor/dominant/diminished), where the fills sit, feel, dynamics.
+5. Fretboard Lab presets (vocabulary below) show the chord tones or scale a section lives on, so the player can find what they hear.
+6. Tips are specific: a left-handed upside-down player (e.g. Eric Gales) means copy the sound, never the hands; loop at 0.5× first; sing the line before you find it; work from the bass up.
+7. Plain language, no flattery, no filler. doneWhen are checks you can hear.
+${LAB_VOCAB_TEXT}`
+}
+
+export function earUser(req: { title: string; artist: string; about?: string | null; context?: string | null }): string {
+  return [`PIECE: ${req.title} — ${req.artist}`, req.about ? `ABOUT THE PERFORMANCE (from the player): ${req.about}` : '', req.context ? `PLAYER CONTEXT: ${req.context}` : '', 'Write the guide.']
+    .filter(Boolean)
+    .join('\n')
+}
+
 export function moduleUser(req: { request: string; result: unknown; existing: string[] }): string {
   return `PLAYER:\n${JSON.stringify(req.result)}\n\nEXISTING MODULES: ${req.existing.join(' · ') || '(none)'}\n\nTHE PLAYER ASKS FOR: "${req.request}"\n\nWrite the module.`
 }

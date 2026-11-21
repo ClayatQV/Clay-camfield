@@ -19,6 +19,8 @@ import { AssessmentHub } from './screens/AssessmentHub'
 import { AiAssessment } from './screens/AiAssessment'
 import { AiResults } from './screens/AiResults'
 import { BuildPlan } from './screens/BuildPlan'
+import { EarGuide } from './screens/EarGuide'
+import { applyUpdate } from './lib/sw'
 
 export function App() {
   const route = useRoute()
@@ -66,6 +68,9 @@ export function App() {
     case 'lab':
       screen = <Lab query={route.query} />
       break
+    case 'ear':
+      screen = <EarGuide query={route.query} />
+      break
     case 'settings':
       screen = <Settings />
       break
@@ -97,10 +102,10 @@ export function App() {
       {!fullscreen && <Shell path={route.path} />}
       <main className="main">{screen}</main>
       <ToastHost />
-      {updateReady && (
+      {updateReady && !fullscreen && (
         <div className="banner" role="status">
           <span>A new version is ready.</span>
-          <button className="btn sm" onClick={() => location.reload()}>
+          <button className="btn sm" onClick={() => applyUpdate()}>
             Reload
           </button>
         </div>
