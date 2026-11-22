@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { GENRES } from '../../api/_lib/genres'
-import { rerollSong, setModuleGenre, setModuleListening } from '../ai/actions'
+import { moduleIn, rerollSong, setModuleGenre, setModuleListening } from '../ai/actions'
 import { songLink } from '../plan/fromModules'
 import { useData } from '../store/store'
 import { Icon } from './Icon'
@@ -14,7 +14,7 @@ import { toast } from './Toast'
  */
 export function ModuleGenre({ moduleId, compact = false }: { moduleId: string; compact?: boolean }) {
   const data = useData()
-  const m = data.ai.build?.modules.find((x) => x.id === moduleId)
+  const m = moduleIn(data, moduleId)
   const [busy, setBusy] = useState<string | null>(null)
   if (!m) return null
   const ranked = data.ai.result?.taste.genres.map((g) => g.name) ?? []
@@ -71,12 +71,11 @@ export function ModuleGenre({ moduleId, compact = false }: { moduleId: string; c
 
       <ul className="song-list">
         {m.application.songs.map((s) => {
-          const link = songLink(s)
-          const internal = link.via === 'lesson' || link.via === 'ear'
+          const link = songLink(s, moduleId)
           return (
             <li key={`${s.title}|${s.artist}`} className={`song-row${busy === s.title ? ' busy' : ''}`}>
               <span className="grow">
-                {internal ? <a href={link.url}>{s.title}</a> : <strong>{s.title}</strong>} <span className="muted">({s.artist})</span>
+                <a href={link.url}>{s.title}</a> <span className="muted">({s.artist})</span>
                 {link.via === 'lesson' && <span className="pill"> tabs on screen</span>}
                 {link.via === 'ear' && <span className="pill amber"> by ear</span>}
                 {s.note && !compact && <div className="small muted">{s.note}</div>}

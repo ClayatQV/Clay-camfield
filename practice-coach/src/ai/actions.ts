@@ -2,11 +2,12 @@
  * Store actions for the AI assessment. The network calls live in the screens
  * (they need loading/error UI); these keep the saved state consistent.
  */
-import type { AiModule, AiResult, AiScreen, BlockId, InterviewRequest, ResultsRequest } from '../../api/_lib/schemas'
+import type { AiModule, AiResult, AiScreen, AiSong, BlockId, InterviewRequest, ResultsRequest } from '../../api/_lib/schemas'
+import type { Moment } from '../content/types'
 import { todayKey } from '../lib/dates'
 import { planFromModules } from '../plan/fromModules'
 import { getSongs } from './client'
-import { getData, update, type AiInterview, type AiState, type AppData } from '../store/store'
+import { getData, songKey, update, type AiInterview, type AppData } from '../store/store'
 
 export const BLOCK_ORDER: BlockId[] = ['skills', 'taste', 'vision']
 /** Mirrors BLOCK_BUDGET on the server (api/_lib/prompts.ts). */
@@ -144,38 +145,44 @@ function playerContext(r: AiResult | null) {
   return r ? { profile: r.profile, vision: r.vision, taste: { genres: r.taste.genres, dimensions: r.taste.dimensions } } : null
 }
 
-/** Replace one module in the build, and, if the active plan was built from these modules, rebuild the plan's songs in place (same id, same start). */
+/** The module behind a block or a song page: the active plan's copy first (that's what's running), else the Build list. */
+export function moduleIn(data: Pick<AppData, 'plan' | 'ai'>, moduleId: string): AiModule | undefined {
+  return data.plan?.modules?.find((m) => m.id === moduleId) ?? data.ai.build?.modules.find((m) => m.id === moduleId)
+}
+
+/** Replace one module wherever it lives: in the Build list, and in the active plan (rebuilt in place: same id, same start, same checks). */
 function replaceModule(next: AiModule) {
   update((x) => {
-    if (!x.ai.build || !x.ai.result) return x
-    const modules = x.ai.build.modules.map((m) => (m.id === next.id ? next : m))
-    const build = { ...x.ai.build, modules }
-    const plan = x.plan && x.plan.resultId === 'ai-result' && x.plan.blocks.some((b) => b.focusId === `ai:${next.id}`) ? rebuiltPlan(x.plan, x.ai.result, build) : x.plan
+    if (!x.ai.result) return x
+    const build = x.ai.build && x.ai.build.modules.some((m) => m.id === next.id) ? { ...x.ai.build, modules: x.ai.build.modules.map((m) => (m.id === next.id ? next : m)) } : x.ai.build
+    let plan = x.plan
+    if (plan?.modules?.some((m) => m.id === next.id)) {
+      const modules = plan.modules.map((m) => (m.id === next.id ? next : m))
+      const fresh = planFromModules(x.ai.result, modules, new Date(plan.createdAt), plan.sessionMinutes ?? x.ai.build?.minutes ?? 30)
+      plan = { ...fresh, id: plan.id, createdAt: plan.createdAt, rejected: plan.rejected }
+    }
     return { ...x, ai: { ...x.ai, build }, plan }
   })
 }
 
-function rebuiltPlan(current: NonNullable<AppData['plan']>, result: AiResult, build: NonNullable<AiState['build']>) {
-  const fresh = planFromModules(result, build.modules, new Date(current.createdAt), build.minutes)
-  return { ...fresh, id: current.id, createdAt: current.createdAt, rejected: current.rejected }
-}
-
 /** Switch the genre the module's songs live in. Asks the coach for the same idea in that genre. */
 export async function setModuleGenre(moduleId: string, genre: string): Promise<void> {
-  const { ai } = getData()
-  const m = ai.build?.modules.find((x) => x.id === moduleId)
-  if (!m || !ai.build) return
-  const rejected = ai.build.rejected[moduleId] ?? []
+  const data = getData()
+  const { ai } = data
+  const m = moduleIn(data, moduleId)
+  if (!m) return
+  const rejected = ai.build?.rejected[moduleId] ?? []
   const res = await getSongs({ module: moduleContext(m), genre, count: Math.min(5, Math.max(3, m.application.songs.length)), exclude: rejected, result: playerContext(ai.result) })
   replaceModule({ ...m, emphasis: genre, application: { instruction: res.instruction || m.application.instruction, songs: res.songs } })
 }
 
 /** The player isn't inspired by this song: get a different one for the same idea in the module's genre, never this one again. */
-export async function rerollSong(moduleId: string, title: string): Promise<void> {
-  const { ai } = getData()
-  const m = ai.build?.modules.find((x) => x.id === moduleId)
-  if (!m || !ai.build) return
-  const rejected = [...new Set([...(ai.build.rejected[moduleId] ?? []), title])]
+export async function rerollSong(moduleId: string, title: string): Promise<AiSong | null> {
+  const data = getData()
+  const { ai } = data
+  const m = moduleIn(data, moduleId)
+  if (!m) return null
+  const rejected = [...new Set([...(ai.build?.rejected[moduleId] ?? []), title])]
   const keep = m.application.songs.filter((s) => s.title !== title)
   const res = await getSongs({
     module: moduleContext(m),
@@ -191,12 +198,29 @@ export async function rerollSong(moduleId: string, title: string): Promise<void>
   songs.splice(Math.max(0, idx), 0, fresh)
   update((x) => (x.ai.build ? { ...x, ai: { ...x.ai, build: { ...x.ai.build, rejected: { ...x.ai.build.rejected, [moduleId]: rejected } } } } : x))
   replaceModule({ ...m, application: { ...m.application, songs } })
+  return fresh
 }
 
 /** Set the module's listening genres (up to two). Listening picks refresh with the next song change or stay as they are. */
 export function setModuleListening(moduleId: string, listening: string[]) {
-  const m = getData().ai.build?.modules.find((x) => x.id === moduleId)
+  const m = moduleIn(getData(), moduleId)
   if (m) replaceModule({ ...m, listening: listening.slice(0, 2) })
+}
+
+/* ---------------- a song's transcription video (chosen in-app) ---------------- */
+
+export function setSongVideo(title: string, artist: string, v: { id: string; title: string | null; channel: string | null } | null) {
+  const key = songKey(title, artist)
+  update((x) => {
+    const cur = x.songs[key] ?? { title, artist, youtubeId: null, videoTitle: null, channel: null, rejected: [], sections: [], chosenAt: null }
+    const rejected = v === null && cur.youtubeId ? [...new Set([...cur.rejected, cur.youtubeId])] : cur.rejected
+    return { ...x, songs: { ...x.songs, [key]: { ...cur, youtubeId: v?.id ?? null, videoTitle: v?.title ?? null, channel: v?.channel ?? null, rejected, sections: v ? cur.sections : [], chosenAt: v ? new Date().toISOString() : cur.chosenAt } } }
+  })
+}
+
+export function setSongSections(title: string, artist: string, sections: Moment[]) {
+  const key = songKey(title, artist)
+  update((x) => (x.songs[key] ? { ...x, songs: { ...x.songs, [key]: { ...x.songs[key], sections } } } : x))
 }
 
 /** Make the built curriculum the active plan (the previous plan stays restorable). */

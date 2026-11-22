@@ -3,7 +3,8 @@ import { labPath } from '../lib/lab'
 
 const CYCLE = 'C F B♭ E♭ A♭ D♭ G♭ B E A D G'
 const TUNE = '"They Can\'t Take That Away From Me"'
-const TUNE_SEARCH = 'https://www.youtube.com/results?search_query=' + encodeURIComponent("They Can't Take That Away From Me Ella Fitzgerald Louis Armstrong")
+// In-app song page (video search + looper), never a trip to YouTube.
+const TUNE_SEARCH = '#/song?' + new URLSearchParams({ title: "They Can't Take That Away From Me", artist: 'Ella Fitzgerald & Louis Armstrong' }).toString()
 
 export const BLOCK1_DETAIL: NonNullable<Block['detail']> = {
   daily: [

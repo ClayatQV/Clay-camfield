@@ -7,6 +7,7 @@ import { BLOCKS } from '../content/blocks'
 import type { BlockWeek, PartId, SessionPart } from '../content/types'
 import { sessionParts } from '../lib/session'
 import type { Vision } from '../assessment/scoring'
+import type { AiModule } from '../../api/_lib/schemas'
 
 export type PlanBlock = {
   n: number
@@ -48,6 +49,9 @@ export type GeneratedPlan = {
   milestones?: Milestone[]
   /** focus ids the player swapped out ("not feeling this block") */
   rejected?: string[]
+  /** AI plans: the modules this plan was built from, so songs/genre can be changed in place */
+  modules?: AiModule[]
+  sessionMinutes?: number
 }
 
 export type ActivePlan = {
@@ -60,6 +64,7 @@ export type ActivePlan = {
   totalWeeks: number
   vision?: Vision
   milestones?: Milestone[]
+  modules?: AiModule[]
 }
 
 let original: ActivePlan | null = null
@@ -108,6 +113,7 @@ export function activePlan(data: { plan: GeneratedPlan | null }): ActivePlan {
     totalWeeks: g.blocks[g.blocks.length - 1].weeks[1],
     vision: g.vision,
     milestones: g.milestones,
+    modules: g.modules,
   }
 }
 

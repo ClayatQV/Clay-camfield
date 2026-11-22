@@ -4,13 +4,9 @@ import { getEarGuide } from '../ai/client'
 import { useAiStatus } from '../ai/hooks'
 import { Icon } from '../components/Icon'
 import { InlineLab } from '../components/InlineLab'
-import { toast } from '../components/Toast'
-import { SPEEDS, useLoop } from '../components/useLoop'
-import { useYouTube } from '../components/useYouTube'
-import type { Moment } from '../content/types'
-import { fmtTime } from '../lib/lessons'
+import { VideoFinder } from '../components/VideoFinder'
+import { VideoWorkbench } from '../components/VideoWorkbench'
 import { href } from '../lib/router'
-import { ytErrorMessage, ytWatchUrl } from '../lib/youtube'
 import { earKey, update, useData, type EarPiece } from '../store/store'
 
 /**
@@ -38,8 +34,6 @@ export function EarGuide({ query }: { query: URLSearchParams }) {
     )
   }
 
-  const search = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist}`.trim())}`
-
   return (
     <div className="screen">
       <a className="back-link" href={href('/practice')}>
@@ -53,219 +47,24 @@ export function EarGuide({ query }: { query: URLSearchParams }) {
       </div>
 
       {piece.youtubeId ? (
-        <Player piece={piece} onSections={(s) => save({ sections: s })} onChangeVideo={() => save({ youtubeId: null })} />
+        <VideoWorkbench
+          videoId={piece.youtubeId}
+          sections={piece.sections}
+          onSections={(s) => save({ sections: s })}
+          heading="1 · The recording"
+          markHelp="Play it through once. Each time a new part of the song starts (verse, bridge, solo…), name it and press Mark. Then loop one section at a time."
+          actions={
+            <button className="btn sm ghost" onClick={() => save({ youtubeId: null })}>
+              Change video
+            </button>
+          }
+        />
       ) : (
-        <VideoPicker search={search} onPick={(id) => save({ youtubeId: id })} />
+        <VideoFinder query={`${title} ${artist}`.trim()} exclude={[]} onPick={(v) => save({ youtubeId: v.id })} heading="1 · The recording" />
       )}
 
       <GuideCard piece={piece} onGuide={(g) => save({ guide: g, guideAt: new Date().toISOString() })} onAbout={(about) => save({ about })} />
     </div>
-  )
-}
-
-/* ---------------- video ---------------- */
-
-function parseYouTube(input: string): string | null {
-  const s = input.trim()
-  if (/^[\w-]{11}$/.test(s)) return s
-  try {
-    const u = new URL(s)
-    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1, 12) || null
-    const v = u.searchParams.get('v')
-    if (v && /^[\w-]{11}$/.test(v)) return v
-    const m = u.pathname.match(/\/(?:shorts|embed|live)\/([\w-]{11})/)
-    return m ? m[1] : null
-  } catch {
-    return null
-  }
-}
-
-function VideoPicker({ search, onPick }: { search: string; onPick: (id: string) => void }) {
-  const [val, setVal] = useState('')
-  return (
-    <section className="card">
-      <h2>1 · The recording</h2>
-      <p className="small muted">Find the performance on YouTube and paste its link here. It stays on this device.</p>
-      <div className="row">
-        <a className="btn" href={search} target="_blank" rel="noreferrer">
-          <Icon name="external" size={18} /> Find it on YouTube
-        </a>
-      </div>
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const id = parseYouTube(val)
-          if (!id) {
-            toast('That doesn’t look like a YouTube link')
-            return
-          }
-          onPick(id)
-        }}
-      >
-        <input className="input grow" placeholder="Paste the YouTube link" value={val} onChange={(e) => setVal(e.target.value)} inputMode="url" />
-        <button className="btn primary" type="submit" disabled={!val.trim()}>
-          Use it
-        </button>
-      </form>
-    </section>
-  )
-}
-
-function Player({ piece, onSections, onChangeVideo }: { piece: EarPiece; onSections: (s: Moment[]) => void; onChangeVideo: () => void }) {
-  const videoId = piece.youtubeId!
-  const { settings } = useData()
-  const yt = useYouTube(videoId)
-  const ready = yt.status === 'ready'
-  const loop = useLoop(yt.playerRef, ready, settings.ladderPasses, yt.ended)
-  const [label, setLabel] = useState('')
-  const call = (fn: (p: YT.Player) => void) => {
-    const p = yt.playerRef.current
-    if (!p || !ready) return
-    try {
-      fn(p)
-    } catch {
-      /* ignore */
-    }
-  }
-  const sections = [...piece.sections].sort((a, b) => a.a - b.a)
-
-  // Mark the start of a section at the current time; it ends where the next one starts (or +20 s for now).
-  const mark = () => {
-    const t = Math.round(loop.now() * 10) / 10
-    const name = label.trim() || `Section ${sections.length + 1}`
-    const next = sections.filter((s) => Math.abs(s.a - t) > 0.5)
-    next.push({ label: name, a: t, b: t + 20 })
-    next.sort((a, b) => a.a - b.a)
-    for (let i = 0; i < next.length - 1; i++) next[i] = { ...next[i], b: next[i + 1].a }
-    onSections(next)
-    setLabel('')
-  }
-  const setEnd = (i: number) => {
-    const t = Math.round(loop.now() * 10) / 10
-    if (t <= sections[i].a + 0.3) {
-      toast('The end has to be after the start')
-      return
-    }
-    onSections(sections.map((s, k) => (k === i ? { ...s, b: t } : s)))
-  }
-
-  return (
-    <section className="card">
-      <div className="row-between">
-        <h2>1 · The recording</h2>
-        <button className="btn sm ghost" onClick={onChangeVideo}>
-          Change video
-        </button>
-      </div>
-      <div className="video-box">
-        <div ref={yt.mountRef} className="video-mount" />
-        {yt.status === 'loading' && <div className="video-overlay muted small">Loading video…</div>}
-        {yt.status === 'error' && yt.error !== null && (
-          <div className="video-overlay">
-            <p>{ytErrorMessage(yt.error)}</p>
-            <a className="btn primary" href={ytWatchUrl(videoId, loop.a ?? undefined)} target="_blank" rel="noreferrer">
-              <Icon name="external" size={18} /> Open on YouTube
-            </a>
-          </div>
-        )}
-      </div>
-
-      <div className="row-between">
-        <button className="btn primary" style={{ minWidth: 120 }} disabled={!ready} onClick={() => call((p) => (yt.playing ? p.pauseVideo() : p.playVideo()))}>
-          <Icon name={yt.playing ? 'pause' : 'play'} size={20} /> {yt.playing ? 'Pause' : 'Play'}
-        </button>
-        <span className="mono" aria-label="Current time">
-          {fmtTime(loop.time)}
-        </span>
-        <button className="btn icon" disabled={!ready} aria-label="Back 2 seconds" onClick={() => call((p) => p.seekTo(Math.max(0, p.getCurrentTime() - 2), true))}>
-          −2s
-        </button>
-      </div>
-      <div className="field">
-        <span className="label">Speed</span>
-        <div className="seg full" role="group" aria-label="Playback speed">
-          {SPEEDS.map((sp) => (
-            <button
-              key={sp}
-              aria-pressed={Math.abs(yt.rate - sp) < 0.01}
-              disabled={!ready}
-              onClick={() => {
-                loop.stopLadder()
-                call((p) => p.setPlaybackRate(sp))
-              }}
-            >
-              {sp}×
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="field">
-        <span className="label">2 · Mark the sections as they go by</span>
-        <p className="small muted">Play it through once. Each time a new part of the song starts (verse, bridge, solo…), name it and press Mark. Then loop one section at a time.</p>
-        <form
-          className="row"
-          onSubmit={(e) => {
-            e.preventDefault()
-            mark()
-          }}
-        >
-          <input className="input grow" placeholder="Verse 1, Bridge, Outro…" value={label} onChange={(e) => setLabel(e.target.value)} />
-          <button className="btn primary" type="submit" disabled={!ready}>
-            Mark here · {fmtTime(loop.time)}
-          </button>
-        </form>
-      </div>
-
-      {sections.length > 0 && (
-        <ul className="moments">
-          {sections.map((s, i) => {
-            const active = loop.loopOn && loop.a === s.a && loop.b === s.b
-            return (
-              <li key={`${s.a}`} className={`moment-row${active ? ' on' : ''}`}>
-                <button className="btn sm primary" disabled={!ready} onClick={() => loop.playLoop(s.a, s.b)}>
-                  <Icon name="loop" size={16} /> Loop
-                </button>
-                <span className="grow">
-                  <strong>{s.label}</strong> <span className="mono small muted">{fmtTime(s.a)} – {fmtTime(s.b)}</span>
-                </span>
-                <button className="btn sm ghost" disabled={!ready} onClick={() => setEnd(i)} title="Set the end of this section to the current time">
-                  End here
-                </button>
-                <button className="btn sm ghost" aria-label="Remove section" onClick={() => onSections(sections.filter((_, k) => k !== i))}>
-                  <Icon name="close" size={14} />
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-      {loop.loopOn && (
-        <div className="row-between small">
-          <span className="muted">
-            Looping {fmtTime(loop.a ?? 0)} – {fmtTime(loop.b ?? 0)}
-            {loop.ladder ? ` · ladder ${SPEEDS[loop.ladder.idx]}× pass ${loop.ladder.pass + 1}/${settings.ladderPasses}` : ''}
-          </span>
-          <span className="row" style={{ gap: 6 }}>
-            {!loop.ladder && (
-              <button className="btn sm" onClick={() => loop.startLadder() || toast('Set a section first')}>
-                Speed ladder
-              </button>
-            )}
-            <button
-              className="btn sm ghost"
-              onClick={() => {
-                loop.setLoopOn(false)
-                loop.stopLadder()
-              }}
-            >
-              Stop loop
-            </button>
-          </span>
-        </div>
-      )}
-    </section>
   )
 }
 

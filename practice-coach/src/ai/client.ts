@@ -2,7 +2,7 @@
  * Talks to the app's own server functions (/api/*), which talk to Claude.
  * The passcode lives in the store; every AI request sends it.
  */
-import type { AiModule, AiResultCore, EarGuide, EarRequest, InterviewRequest, InterviewResponse, ModuleRequest, ModulesRequest, ResultsRequest, SongsRequest, SongsResponse } from '../../api/_lib/schemas'
+import type { AiModule, AiResultCore, EarGuide, EarRequest, InterviewRequest, InterviewResponse, ModuleRequest, ModulesRequest, ResultsRequest, SongsRequest, SongsResponse, VideoHit, VideoSearchRequest } from '../../api/_lib/schemas'
 import { getData } from '../store/store'
 
 export class AiClientError extends Error {
@@ -72,3 +72,4 @@ export const getModules = (req: ModulesRequest) => call<{ modules: AiModule[] }>
 export const writeModule = (req: ModuleRequest) => call<AiModule>('module', req)
 export const getEarGuide = (req: EarRequest) => call<EarGuide>('ear', req)
 export const getSongs = (req: SongsRequest) => call<SongsResponse>('songs', req)
+export const searchVideos = (req: VideoSearchRequest) => call<{ results: VideoHit[]; source: 'api' | 'page' }>('video-search', req)

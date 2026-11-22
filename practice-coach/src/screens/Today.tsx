@@ -26,7 +26,7 @@ import {
   totalElapsed,
 } from '../store/actions'
 import { updateSettings, useData, type LengthMode } from '../store/store'
-import { rerollSong } from '../ai/actions'
+import { moduleIn, rerollSong } from '../ai/actions'
 import { toast } from '../components/Toast'
 
 export function Today() {
@@ -75,11 +75,11 @@ export function Today() {
   const total = totalElapsed(active, now)
   const doneCount = active ? PART_IDS.filter((p) => active.done[p]).length : 0
   const guided = data.settings.guided
-  const moduleId = block.focusId?.startsWith('ai:') && data.ai.build?.modules.some((m) => `ai:${m.id}` === block.focusId) ? block.focusId.slice(3) : null
+  const moduleId = block.focusId?.startsWith('ai:') && moduleIn(data, block.focusId.slice(3)) ? block.focusId.slice(3) : null
   const partProps = (p: SessionPart, i: number) => ({
     index: i + 1,
     part: p,
-    onReroll: moduleId && p.id === 'application' ? (label: string) => rerollSong(moduleId, label) : undefined,
+    onReroll: moduleId && p.id === 'application' ? async (label: string) => void (await rerollSong(moduleId, label)) : undefined,
     lengthMode,
     seconds: elapsedOf(active, p.id, now),
     running: running === p.id,
@@ -406,7 +406,7 @@ function PartCard(props: {
                   <strong>{o.label}</strong>
                   {o.sub && <span className="small muted"> · {o.sub}</span>}
                 </span>
-                <Icon name={o.url.startsWith('#/ear') ? 'play' : o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#/ear') ? 'Learn it by ear' : o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
+                <Icon name={o.url.startsWith('#/lessons') ? 'lessons' : o.url.startsWith('#') ? 'play' : 'external'} size={18} label={o.url.startsWith('#/lessons') ? 'Open the lesson' : o.url.startsWith('#') ? 'Open in the app' : 'Open'} />
               </a>
               {props.onReroll && o.kind !== 'goal' && (
                 <button className="btn sm ghost reroll" disabled={rolling !== null} onClick={() => void reroll(o.label)} title="Not inspired, or the video isn't good? Get a different song for the same idea">
@@ -442,8 +442,8 @@ function PartCard(props: {
             </a>
           )}
           {part.externalLinks?.map((l) => (
-            <a key={l.url} className="link-row" href={l.url} target="_blank" rel="noreferrer">
-              <Icon name="external" size={18} />
+            <a key={l.url} className="link-row" href={l.url} {...(l.url.startsWith('#') ? {} : { target: '_blank', rel: 'noreferrer' })}>
+              <Icon name={l.url.startsWith('#') ? 'play' : 'external'} size={18} />
               <span className="grow">{l.label}</span>
             </a>
           ))}

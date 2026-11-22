@@ -158,8 +158,8 @@ export function Home() {
               <span className="eyebrow">Song of the day</span>
               <h3>{songOfDay.label}</h3>
               {songOfDay.sub && <p className="small muted">{songOfDay.sub}</p>}
-              <a className="btn sm" href={songOfDay.url} target="_blank" rel="noreferrer">
-                <Icon name="external" size={16} /> Find a transcription
+              <a className="btn sm" href={songOfDay.url} {...(songOfDay.url.startsWith('#') ? {} : { target: '_blank', rel: 'noreferrer' })}>
+                <Icon name={songOfDay.url.startsWith('#') ? 'play' : 'external'} size={16} /> {songOfDay.url.startsWith('#/lessons') ? 'Open the lesson' : 'Open in the app'}
               </a>
             </section>
           )}

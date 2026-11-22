@@ -20,6 +20,7 @@ import { AiAssessment } from './screens/AiAssessment'
 import { AiResults } from './screens/AiResults'
 import { BuildPlan } from './screens/BuildPlan'
 import { EarGuide } from './screens/EarGuide'
+import { SongPage } from './screens/SongPage'
 import { applyUpdate } from './lib/sw'
 
 export function App() {
@@ -70,6 +71,9 @@ export function App() {
       break
     case 'ear':
       screen = <EarGuide query={route.query} />
+      break
+    case 'song':
+      screen = <SongPage query={route.query} />
       break
     case 'settings':
       screen = <Settings />

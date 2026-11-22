@@ -219,6 +219,25 @@ export const SongsRequestSchema = z.object({
 })
 export type SongsRequest = z.infer<typeof SongsRequestSchema>
 
+/* ---------------- in-app video search ---------------- */
+
+/** One search result (defined here so the client can import the type without pulling in server code). */
+export type VideoHit = {
+  id: string
+  title: string
+  channel: string
+  length: string | null
+  score: number
+  hint: string | null
+}
+
+export const VideoSearchRequestSchema = z.object({
+  q: z.string().min(1).max(200),
+  /** video ids the player already rejected */
+  exclude: z.array(z.string().max(20)).max(50).optional(),
+})
+export type VideoSearchRequest = z.infer<typeof VideoSearchRequestSchema>
+
 /* ---------------- learn it by ear ---------------- */
 
 export const EarGuideSchema = z.object({

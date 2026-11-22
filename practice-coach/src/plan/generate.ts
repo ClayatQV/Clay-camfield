@@ -395,8 +395,8 @@ function warmupArps(r: AssessmentResult, gw: number, block: Focus): SessionPart 
 
 /* ---------------- application options ---------------- */
 
-const transcription = (title: string, artist: string) =>
-  `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist} guitar transcription tab`)}`
+/** In-app song page: finds the transcription video without leaving the app. */
+const transcription = (title: string, artist: string) => `#/song?${new URLSearchParams({ title, artist }).toString()}`
 
 /** A lesson in the library that matches a signature piece, if any. */
 function lessonFor(text: string) {

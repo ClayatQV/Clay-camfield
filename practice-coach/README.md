@@ -13,10 +13,11 @@ Clay's daily guitar practice app (prototype v0.1). Desktop-first and also works 
 
 ## The AI coach
 
-The assessment and curriculum are run by an AI coach (Claude) through small server functions in `api/` (`interview`, `results`, `modules`, `module`, `songs`, `ear`, `auth`, `health`). The rules it follows are in `docs/interviewer-rules.md`; open design questions in `docs/open-questions.md`. It needs two settings on the server (Vercel → Project → Settings → Environment Variables):
+The assessment and curriculum are run by an AI coach (Claude) through small server functions in `api/` (`interview`, `results`, `modules`, `module`, `songs`, `ear`, `video-search`, `auth`, `health`). The rules it follows are in `docs/interviewer-rules.md`; open design questions in `docs/open-questions.md`. It needs two settings on the server (Vercel → Project → Settings → Environment Variables):
 
 | Variable | What |
 |---|---|
+| `YOUTUBE_API_KEY` | Optional. A YouTube Data API v3 key for in-app video search; without it the server reads the public results page. |
 | `ANTHROPIC_API_KEY` | Your Anthropic API key (console.anthropic.com). Pay-as-you-go; a full assessment plus results costs well under a dollar. |
 | `APP_PASSCODE` | A passcode you choose. The site is public; this keeps strangers from using the coach on your key. You enter it once in the app (Assessment page or Settings). |
 

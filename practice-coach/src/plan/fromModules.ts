@@ -19,17 +19,21 @@ function minsFor(part: keyof typeof RATIO, sessionMinutes: number): Mins {
   return { 30: Math.max(1, Math.round(short * RATIO[part])), 60: Math.max(1, Math.round(full * RATIO[part])) }
 }
 
-const search = (title: string, artist: string) =>
-  `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${artist} guitar transcription tab`.trim())}`
-const earPage = (title: string, artist: string) => `#/ear?${new URLSearchParams({ title, artist }).toString()}`
+const page = (path: string, title: string, artist: string, moduleId?: string) =>
+  `#/${path}?${new URLSearchParams({ title, artist, ...(moduleId ? { m: moduleId } : {}) }).toString()}`
 
-/** Where a module song sends the player: the lesson (tabs on screen, looper) when the library has it; the record for by-ear pieces; else a transcription search. */
-export function songLink(s: { title: string; artist: string; how?: 'transcription' | 'ear' | null }): { url: string; via: 'lesson' | 'ear' | 'search' } {
+/**
+ * Where a module song sends the player. Always inside the app: the lesson
+ * (tabs on screen, looper) when the library has it; the learn-by-ear page for
+ * pieces with no transcription; otherwise the song page, which finds the
+ * transcription video in-app and plays it in the looper.
+ */
+export function songLink(s: { title: string; artist: string; how?: 'transcription' | 'ear' | null }, moduleId?: string): { url: string; via: 'lesson' | 'ear' | 'song' } {
   const t = findTranscription(s.title, s.artist)
   const lesson = t && LESSONS.find((l) => l.id === t.id || l.youtubeId === t.youtubeId)
   if (lesson) return { url: `#/lessons/${lesson.id}`, via: 'lesson' }
-  if (s.how === 'ear') return { url: earPage(s.title, s.artist), via: 'ear' }
-  return { url: search(s.title, s.artist), via: 'search' }
+  if (s.how === 'ear') return { url: page('ear', s.title, s.artist, moduleId), via: 'ear' }
+  return { url: page('song', s.title, s.artist, moduleId), via: 'song' }
 }
 
 const labUrl = (q: string | null) => (q ? '/lab?' + q : null)
@@ -94,8 +98,8 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
       const ordered = [...songs.slice(rot), ...songs.slice(0, rot)]
       const dupTitles = new Set(songs.map((s) => s.title.toLowerCase()).filter((t, i, a) => a.indexOf(t) !== i))
       const options: PartOption[] = ordered.map((s) => {
-        const link = songLink(s)
-        const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'learn it by ear · guide + looper' : null
+        const link = songLink(s, m.id)
+        const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'learn it by ear · guide + looper' : 'find the transcription · looper'
         return {
           // Same title by two artists in one module (three "Amazing Grace"s): keep the labels distinct.
           label: dupTitles.has(s.title.toLowerCase()) && s.artist ? `${s.title} (${s.artist})` : s.title,
@@ -156,5 +160,7 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
     vision: visionFromAi(result),
     milestones,
     rejected: [],
+    modules,
+    sessionMinutes,
   }
 }

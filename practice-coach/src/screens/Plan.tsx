@@ -14,6 +14,7 @@ import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
 import { ModuleGenre } from '../components/ModuleGenre'
+import { moduleIn } from '../ai/actions'
 
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
 
@@ -189,7 +190,7 @@ function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
         </section>
       )}
 
-      {b.focusId?.startsWith('ai:') && data.ai.build?.modules.some((m) => `ai:${m.id}` === b.focusId) && (
+      {b.focusId?.startsWith('ai:') && moduleIn(data, b.focusId.slice(3)) && (
         <section className="card">
           <h2>Songs and listening</h2>
           <p className="small muted">Pick the genre these songs live in, swap any song you're not inspired by, and choose what to listen to during these weeks. The idea, warm-ups and checks stay the same.</p>

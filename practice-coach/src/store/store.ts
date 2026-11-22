@@ -120,6 +120,19 @@ export type EarPiece = {
   guideAt: string | null
 }
 
+/** A song the player is learning from a transcription video found in-app. */
+export type SongVideo = {
+  title: string
+  artist: string
+  youtubeId: string | null
+  videoTitle: string | null
+  channel: string | null
+  /** video ids the player said weren't good */
+  rejected: string[]
+  sections: Moment[]
+  chosenAt: string | null
+}
+
 export type AppData = {
   version: number
   settings: Settings
@@ -131,6 +144,8 @@ export type AppData = {
   moments: Record<string, Moment[]>
   /** Learn-by-ear pieces, keyed by earKey(title, artist). */
   ear: Record<string, EarPiece>
+  /** Songs with a chosen transcription video, keyed by songKey(title, artist). */
+  songs: Record<string, SongVideo>
   draft: Draft | null
   labTime: LabTime
   assessment: AssessmentState
@@ -160,6 +175,7 @@ export function defaultData(): AppData {
     doneWhen: {},
     moments: {},
     ear: {},
+    songs: {},
     draft: null,
     labTime: {},
     assessment: { draft: null, results: [], dismissedPrompt: false },
@@ -244,6 +260,23 @@ export function normalize(raw: unknown): AppData {
           : [],
         guide: isObj(v.guide) && isObj(v.guide.underlying) && Array.isArray(v.guide.sections) ? (v.guide as unknown as EarGuide) : null,
         guideAt: typeof v.guideAt === 'string' ? v.guideAt : null,
+      }
+    }
+  }
+  if (isObj(raw.songs)) {
+    for (const [k, v] of Object.entries(raw.songs)) {
+      if (!isObj(v) || typeof v.title !== 'string') continue
+      d.songs[k] = {
+        title: v.title,
+        artist: typeof v.artist === 'string' ? v.artist : '',
+        youtubeId: typeof v.youtubeId === 'string' && v.youtubeId ? v.youtubeId : null,
+        videoTitle: typeof v.videoTitle === 'string' ? v.videoTitle : null,
+        channel: typeof v.channel === 'string' ? v.channel : null,
+        rejected: Array.isArray(v.rejected) ? v.rejected.filter((x): x is string => typeof x === 'string') : [],
+        sections: Array.isArray(v.sections)
+          ? (v.sections.filter((m) => isObj(m) && typeof m.label === 'string' && Number.isFinite(Number(m.a)) && Number.isFinite(Number(m.b))) as unknown as Moment[])
+          : [],
+        chosenAt: typeof v.chosenAt === 'string' ? v.chosenAt : null,
       }
     }
   }
@@ -473,6 +506,9 @@ export function resetAll() {
   writeStorage(LAB_STORAGE_KEY, null)
   setData(defaultData())
 }
+
+/** Store key for a song (same as earKey). */
+export const songKey = (title: string, artist: string) => earKey(title, artist)
 
 /** Store key for a learn-by-ear piece. */
 export function earKey(title: string, artist: string): string {
