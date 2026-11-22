@@ -106,7 +106,7 @@ export type AiState = {
   result: AiResult | null
   resultAt: string | null
   /** the curriculum as the player is shaping it on the Build page */
-  build: { modules: AiModule[]; minutes: number; days: number } | null
+  build: { modules: AiModule[]; minutes: number; days: number; rejected: Record<string, string[]> } | null
 }
 
 /** A piece the player is learning by ear: the video they chose, the sections they marked, the coach's guide. */
@@ -315,7 +315,14 @@ export function normalize(raw: unknown): AppData {
       resultAt: typeof a.resultAt === 'string' ? a.resultAt : null,
       build:
         isObj(a.build) && Array.isArray(a.build.modules)
-          ? { modules: a.build.modules as AiModule[], minutes: Number(a.build.minutes) || 30, days: Number(a.build.days) || 5 }
+          ? {
+              modules: (a.build.modules as AiModule[]).map((m) => ({ ...m, emphasis: m.emphasis ?? null, listening: Array.isArray(m.listening) ? m.listening : [], listen: Array.isArray(m.listen) ? m.listen : [] })),
+              minutes: Number(a.build.minutes) || 30,
+              days: Number(a.build.days) || 5,
+              rejected: isObj(a.build.rejected)
+                ? Object.fromEntries(Object.entries(a.build.rejected).map(([k, v]) => [k, Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []]))
+                : {},
+            }
           : null,
     }
   }

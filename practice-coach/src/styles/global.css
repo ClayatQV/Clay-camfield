@@ -1913,3 +1913,41 @@ table.skeleton td {
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
+
+/* ---------------- module genre / songs ---------------- */
+.song-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.song-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.song-row.busy {
+  opacity: 0.6;
+}
+.song-row:last-child {
+  border-bottom: 0;
+}
+.option-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px;
+}
+.option-wrap .option-row {
+  min-width: 0;
+}
+.btn.reroll {
+  white-space: nowrap;
+}
+.module-genre select.input {
+  min-height: 38px;
+  padding: 4px 8px;
+}

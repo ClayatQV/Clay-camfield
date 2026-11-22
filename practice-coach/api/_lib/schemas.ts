@@ -72,6 +72,11 @@ export const ModuleSchema = z.object({
     instruction: z.string().describe('2–3 sentences: exactly what to do today'),
     lab: z.string().nullable(),
   }),
+  emphasis: z.string().nullable().describe('the ONE genre this module\'s songs and transcriptions are in (recommended for this player; the player can change it)'),
+  listening: z.array(z.string()).describe('up to two genres to listen in during this module, for diversity; the first is usually the emphasis'),
+  listen: z
+    .array(z.object({ artist: z.string(), album: z.string(), genre: z.string(), why: z.string() }))
+    .describe('2 or 3 albums to listen to during this module, drawn from the listening genres, each with a one-line why in the player\'s terms'),
   application: z.object({
     instruction: z.string(),
     songs: z
@@ -180,6 +185,39 @@ export const ModulesRequestSchema = z.object({
   core: ResultCoreSchema,
 })
 export type ModulesRequest = z.infer<typeof ModulesRequestSchema>
+
+/* ---------------- songs for a module, in a chosen genre ---------------- */
+
+export const SongSchema = z.object({
+  title: z.string(),
+  artist: z.string(),
+  note: z.string().nullable(),
+  how: z.enum(['transcription', 'ear']).nullable(),
+})
+export type AiSong = z.infer<typeof SongSchema>
+
+export const SongsResponseSchema = z.object({
+  instruction: z.string().describe('the application instruction rewritten for these songs (what to lift, how to apply the idea)'),
+  songs: z.array(SongSchema).describe('exactly the number of songs asked for'),
+})
+export type SongsResponse = z.infer<typeof SongsResponseSchema>
+
+export const SongsRequestSchema = z.object({
+  module: z.object({
+    title: z.string(),
+    why: z.string().nullable().optional(),
+    concept: z.object({ label: z.string(), instruction: z.string() }),
+    trains: z.array(z.string()).optional(),
+    towards: z.string().nullable().optional(),
+  }),
+  genre: z.string().min(1).max(60),
+  count: z.number().int().min(1).max(6),
+  /** titles already in the module or rejected by the player; never pick these */
+  exclude: z.array(z.string()).max(60),
+  /** the player's results (profile, vision, taste) for wording and level */
+  result: z.record(z.string(), z.unknown()).nullable().optional(),
+})
+export type SongsRequest = z.infer<typeof SongsRequestSchema>
 
 /* ---------------- learn it by ear ---------------- */
 

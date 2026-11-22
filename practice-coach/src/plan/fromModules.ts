@@ -123,6 +123,9 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
       focusId: `ai:${m.id}`,
       towards: m.towards ?? undefined,
       why: m.why,
+      emphasis: m.emphasis ?? undefined,
+      listening: m.listening?.length ? m.listening : undefined,
+      listen: m.listen?.length ? m.listen : undefined,
       daily: [
         { part: 'triads', m30: MIN.triads[30], m60: MIN.triads[60], what: w0.label },
         { part: 'arps', m30: MIN.arps[30], m60: MIN.arps[60], what: w1.label },

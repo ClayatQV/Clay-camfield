@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { AiModule } from '../../api/_lib/schemas'
 import { applyBuild, setBuildModules, setBuildTime, setModules } from '../ai/actions'
 import { getModules, writeModule } from '../ai/client'
-import { songLink } from '../plan/fromModules'
+import { ModuleGenre } from '../components/ModuleGenre'
 import { Icon } from '../components/Icon'
 import { toast } from '../components/Toast'
 import { href, navigate } from '../lib/router'
@@ -220,21 +220,10 @@ export function BuildPlan() {
                 </div>
                 <div>
                   <span className="label">Apply it to</span>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    {m.application.songs.map((s) => {
-                      const link = songLink(s)
-                      return (
-                        <li key={`${s.title}|${s.artist}`}>
-                          {link.via === 'lesson' || link.via === 'ear' ? <a href={link.url}>{s.title}</a> : s.title}{' '}
-                          <span className="muted">({s.artist})</span>
-                          {link.via === 'lesson' && <span className="pill"> tabs on screen</span>}
-                          {link.via === 'ear' && <span className="pill amber"> by ear</span>}
-                          {s.note && <span className="muted"> — {s.note}</span>}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                  <div className="muted">{m.application.instruction}</div>
+                  <div className="muted" style={{ marginBottom: 6 }}>
+                    {m.application.instruction}
+                  </div>
+                  <ModuleGenre moduleId={m.id} />
                 </div>
                 <div>
                   <span className="label">Done when</span>

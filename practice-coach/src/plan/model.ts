@@ -28,6 +28,10 @@ export type PlanBlock = {
   towards?: string
   /** one line: why this block, in terms of the player's vision */
   why?: string
+  /** AI modules: the genre the songs are in, the listening genres, and the album picks for this stretch */
+  emphasis?: string
+  listening?: string[]
+  listen?: { artist: string; album: string; genre: string; why: string }[]
 }
 
 export type Milestone = { piece: string; blocks: number[] }

@@ -5,6 +5,7 @@
  */
 import { LAB_VOCAB_TEXT } from './lab-vocab.js'
 import { TRANSCRIPTIONS_TEXT } from './transcriptions.js'
+import { GENRES_TEXT } from './genres.js'
 import type { BlockId, Turn } from './schemas.js'
 
 export const BLOCK_BUDGET: Record<BlockId, { screens: number; minutes: number; name: string }> = {
@@ -118,7 +119,8 @@ export function resultsUser(req: { turns: Turn[]; notes: string | null; summarie
 
 /* ---------------- modules ---------------- */
 
-const MODULE_RULES = `Each module is a focused unit of practice. Default length is 1 week; use 2 or 3 only when the material genuinely needs it (players repeat modules anyway, and nobody wants a 17-week commitment). Name it for the music or outcome, not the exercise. The why is one line in THIS player's terms — no name-dropping other players unless the player named them. "towards" = the signature piece it serves, if any. Two daily warm-ups on their actual gaps (fundamentals ride along here, about 30% of a session) with Fretboard Lab presets; a concept with a precise instruction for what to do today; an application with 3–5 real songs/solos to choose from (their named pieces first when relevant; songs from their genres they know but haven't learned; one discovery pick from a neighboring genre); 2–3 concrete doneWhen checks phrased as things you can hear yourself do. Keep the player inspired: variety, choice, visible wins. A "listening first" genre gets a short listening-and-learning module.`
+const MODULE_RULES = `Each module is a focused unit of practice. Default length is 1 week; use 2 or 3 only when the material genuinely needs it (players repeat modules anyway, and nobody wants a 17-week commitment). Name it for the music or outcome, not the exercise. The why is one line in THIS player's terms — no name-dropping other players unless the player named them. "towards" = the signature piece it serves, if any. Two daily warm-ups on their actual gaps (fundamentals ride along here, about 30% of a session) with Fretboard Lab presets; a concept with a precise instruction for what to do today; an application with 3–5 real songs/solos to choose from (their named pieces first when relevant; songs from their genres they know but haven't learned; one discovery pick from a neighboring genre); 2–3 concrete doneWhen checks phrased as things you can hear yourself do. Keep the player inspired: variety, choice, visible wins. A "listening first" genre gets a short listening-and-learning module.
+GENRE EMPHASIS. Every module has ONE emphasis genre (from: ${GENRES_TEXT}, or the player's own wording): the genre its songs and transcriptions are in. Recommend it from the player's ranked genres and the idea (a ♭9 module for a blues-first player → Blues; the same idea exists in gospel, R&B, jazz, country, fusion and funk, and the player can switch). All application songs must be in the emphasis genre. "listening" is up to two genres for that module's listening, for diversity (the emphasis plus a neighbour, or two of their ranked genres); "listen" is 2–3 real albums from those genres with a one-line why.`
 
 export function modulesSystem(): string {
   return `You write the recommended curriculum for a guitar player who just finished the Practice Coach assessment. You get their results (profile, skill levels, gaps, vision, taste, practice time) and the transcript. Return JSON per schema: 4–10 modules in order. LEAD WITH WHAT THEY SAID IS INSPIRING THEM RIGHT NOW and want to work on first; fit the gaps around that (most of the time goes to what they WANT; fundamentals they NEED ride along as the daily warm-ups). Order foundations before what builds on them only when something truly can't be started yet. Honor their practice time.
@@ -138,6 +140,27 @@ export function moduleSystem(): string {
 ${MODULE_RULES}
 ${TRANSCRIPTIONS_TEXT}
 ${LAB_VOCAB_TEXT}`
+}
+
+/* ---------------- songs for a module, in a chosen genre ---------------- */
+
+export function songsSystem(): string {
+  return `You pick application songs for ONE existing practice module in Practice Coach, in a genre the player chose. The module's concept, warm-ups and done-when checks do not change; only the songs do. The same musical idea (a dominant ♭9, a diminished passing sound, a shuffle feel, triad pairs…) lives in many genres; find where THIS idea is clearly audible in THAT genre.
+Rules: every song is in the requested genre; each one shows the module's concept clearly (say where, in the note); never pick a title in the exclude list or a near-duplicate of it; prefer songs that almost certainly have a full transcription video with tabs or notation on screen (how = "transcription"), otherwise mark how = "ear"; pitch the choice at the player's level and taste when results are given; real recordings only, with the artist whose version you mean. Return exactly the number asked for and rewrite the application instruction for these songs in two sentences.
+${TRANSCRIPTIONS_TEXT}`
+}
+
+export function songsUser(req: { module: unknown; genre: string; count: number; exclude: string[]; result?: unknown }): string {
+  return [
+    `MODULE: ${JSON.stringify(req.module)}`,
+    `GENRE: ${req.genre}`,
+    `HOW MANY: ${req.count}`,
+    `EXCLUDE (already used or rejected): ${req.exclude.join(' · ') || '(none)'}`,
+    req.result ? `PLAYER: ${JSON.stringify(req.result)}` : '',
+    'Pick the songs.',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 /* ---------------- learn it by ear ---------------- */

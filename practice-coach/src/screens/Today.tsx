@@ -26,6 +26,8 @@ import {
   totalElapsed,
 } from '../store/actions'
 import { updateSettings, useData, type LengthMode } from '../store/store'
+import { rerollSong } from '../ai/actions'
+import { toast } from '../components/Toast'
 
 export function Today() {
   const data = useData()
@@ -73,9 +75,11 @@ export function Today() {
   const total = totalElapsed(active, now)
   const doneCount = active ? PART_IDS.filter((p) => active.done[p]).length : 0
   const guided = data.settings.guided
+  const moduleId = block.focusId?.startsWith('ai:') && data.ai.build?.modules.some((m) => `ai:${m.id}` === block.focusId) ? block.focusId.slice(3) : null
   const partProps = (p: SessionPart, i: number) => ({
     index: i + 1,
     part: p,
+    onReroll: moduleId && p.id === 'application' ? (label: string) => rerollSong(moduleId, label) : undefined,
     lengthMode,
     seconds: elapsedOf(active, p.id, now),
     running: running === p.id,
@@ -345,9 +349,24 @@ function PartCard(props: {
   onToggleRun: () => void
   onToggleDone: () => void
   onReset: () => void
+  /** AI plans: ask the coach for a different song for the same idea (the song isn't inspiring, or its video isn't good). */
+  onReroll?: (label: string) => Promise<void>
 }) {
   const { part, lengthMode, seconds, running, done } = props
   const [openLab, setOpenLab] = useState<{ url: string; label: string } | null>(null)
+  const [rolling, setRolling] = useState<string | null>(null)
+  const reroll = async (label: string) => {
+    if (!props.onReroll) return
+    setRolling(label)
+    try {
+      await props.onReroll(label)
+      toast('New song picked')
+    } catch (e) {
+      toast(`Couldn't pick a new song: ${e instanceof Error ? e.message : 'unknown error'}`, 5000)
+    } finally {
+      setRolling(null)
+    }
+  }
   const target = part.minutes[lengthMode] * 60
   const pct = Math.min(100, (seconds / target) * 100)
   const reached = seconds >= target
@@ -381,13 +400,20 @@ function PartCard(props: {
         <div className="options">
           <span className="label">Pick one</span>
           {part.options.map((o) => (
-            <a key={o.label} className={`option-row ${o.kind}`} href={o.url} {...(o.url.startsWith('#') ? {} : { target: '_blank', rel: 'noreferrer' })}>
-              <span className="grow">
-                <strong>{o.label}</strong>
-                {o.sub && <span className="small muted"> · {o.sub}</span>}
-              </span>
-              <Icon name={o.url.startsWith('#/ear') ? 'play' : o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#/ear') ? 'Learn it by ear' : o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
-            </a>
+            <div key={o.label} className="option-wrap">
+              <a className={`option-row ${o.kind}`} href={o.url} {...(o.url.startsWith('#') ? {} : { target: '_blank', rel: 'noreferrer' })}>
+                <span className="grow">
+                  <strong>{o.label}</strong>
+                  {o.sub && <span className="small muted"> · {o.sub}</span>}
+                </span>
+                <Icon name={o.url.startsWith('#/ear') ? 'play' : o.url.startsWith('#') ? 'lessons' : 'external'} size={18} label={o.url.startsWith('#/ear') ? 'Learn it by ear' : o.url.startsWith('#') ? 'Open the lesson' : 'Find a transcription'} />
+              </a>
+              {props.onReroll && o.kind !== 'goal' && (
+                <button className="btn sm ghost reroll" disabled={rolling !== null} onClick={() => void reroll(o.label)} title="Not inspired, or the video isn't good? Get a different song for the same idea">
+                  <Icon name="reset" size={14} /> {rolling === o.label ? 'Picking…' : 'New song'}
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}

@@ -4,11 +4,14 @@
  */
 import { ask } from './claude.js'
 import { cleanLabQuery } from './lab-vocab.js'
-import { BLOCK_BUDGET, earSystem, earUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
+import { BLOCK_BUDGET, earSystem, earUser, songsSystem, songsUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
 import {
   EarGuideSchema,
   type EarGuide,
   type EarRequest,
+  SongsResponseSchema,
+  type SongsRequest,
+  type SongsResponse,
   InterviewResponseSchema,
   ModuleSchema,
   ModulesSchema,
@@ -63,6 +66,8 @@ function cleanModule(m: AiModule): AiModule {
   })
   return {
     ...m,
+    listening: (m.listening ?? []).slice(0, 2),
+    listen: (m.listen ?? []).slice(0, 3),
     application: { ...m.application, songs },
     warmups: m.warmups.map((w) => ({ ...w, lab: cleanLabQuery(w.lab) })),
     concept: { ...m.concept, lab: cleanLabQuery(m.concept.lab) },
@@ -78,6 +83,20 @@ export async function results(req: ResultsRequest): Promise<AiResultCore> {
 export async function modules(req: ModulesRequest): Promise<AiModule[]> {
   const out = await ask({ system: modulesSystem(), user: modulesUser({ turns: req.turns, core: req.core }), schema: ModulesSchema, effort: 'medium', maxTokens: 12000, fast: true })
   return out.modules.map(cleanModule)
+}
+
+/** New songs for a module's application, in a chosen genre (the rest of the module stays). */
+export async function songs(req: SongsRequest): Promise<SongsResponse> {
+  const out = await ask({ system: songsSystem(), user: songsUser(req), schema: SongsResponseSchema, effort: 'medium', maxTokens: 2500, fast: true })
+  const ex = new Set(req.exclude.map((t) => t.toLowerCase()))
+  const seen = new Set<string>()
+  const songs = out.songs.filter((s) => {
+    const k = s.title.toLowerCase()
+    if (ex.has(k) || seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+  return { ...out, songs }
 }
 
 /** A learn-it-by-ear guide for a piece with no transcription. */

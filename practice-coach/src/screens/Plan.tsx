@@ -13,6 +13,7 @@ import { useState } from 'react'
 import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
+import { ModuleGenre } from '../components/ModuleGenre'
 
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
 
@@ -185,6 +186,14 @@ function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
             <strong>Why this block:</strong> {b.why}
           </p>
           {plan.source === 'assessment' && b.focusId !== 'together' && <SwapBlock n={n} />}
+        </section>
+      )}
+
+      {b.focusId?.startsWith('ai:') && data.ai.build?.modules.some((m) => `ai:${m.id}` === b.focusId) && (
+        <section className="card">
+          <h2>Songs and listening</h2>
+          <p className="small muted">Pick the genre these songs live in, swap any song you're not inspired by, and choose what to listen to during these weeks. The idea, warm-ups and checks stay the same.</p>
+          <ModuleGenre moduleId={b.focusId.slice(3)} />
         </section>
       )}
 

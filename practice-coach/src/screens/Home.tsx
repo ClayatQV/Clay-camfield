@@ -47,10 +47,16 @@ export function Home() {
   const lessons = LESSONS.filter((l) => (data.lessonState[l.id]?.status ?? l.status) === 'approved' && l.kind === 'song')
   const pick = lessons.length ? lessons[dayIndex(today) % lessons.length] : null
 
-  // Listen this week: from the assessment's listening list, rotating weekly.
-  const listening = latest?.listening ?? []
+  // Listen this week: the current module's picks (its listening genres) → the AI results' list → the tap assessment's list; rotating weekly.
   const wk = Math.floor(dayIndex(weekStart(today)) / 7)
-  const listen = listening.length ? [listening[wk % listening.length], listening[(wk + 1) % listening.length]].filter((x, i, a) => a.indexOf(x) === i) : []
+  type Listen = { artist: string; album?: string; genre: string; sub?: string; why?: string }
+  const pool: Listen[] = block.listen?.length
+    ? block.listen.map((l) => ({ artist: l.artist, album: l.album, genre: l.genre, why: l.why }))
+    : data.ai.result?.taste.listening.length
+      ? data.ai.result.taste.listening.map((l) => ({ artist: l.artist, album: l.album ?? undefined, genre: l.genre, why: l.why }))
+      : (latest?.listening ?? []).map((l) => ({ artist: l.artist, genre: l.genre, sub: l.era }))
+  const listen = pool.length ? [pool[wk % pool.length], pool[(wk + 1) % pool.length]].filter((x, i, a) => a.indexOf(x) === i) : []
+  const listenGenres = block.listening?.length ? block.listening.join(' + ') : null
 
   return (
     <div className="screen home">
@@ -176,16 +182,19 @@ export function Home() {
 
           {listen.length > 0 && (
             <section className="card">
-              <span className="eyebrow">Listen this week</span>
+              <span className="eyebrow">Listen this week{listenGenres ? ` · ${listenGenres}` : ''}</span>
               {listen.map((l) => (
-                <div key={l.artist} className="listen-row">
+                <div key={`${l.artist}|${l.album ?? ''}`} className="listen-row">
                   <div className="grow">
                     <strong>{l.artist}</strong>
+                    {l.album && <span> — {l.album}</span>}
                     <div className="small muted">
-                      {l.genre} · {l.era}
+                      {l.genre}
+                      {l.sub ? ` · ${l.sub}` : ''}
+                      {l.why ? ` · ${l.why}` : ''}
                     </div>
                   </div>
-                  <a className="btn sm" href={`https://open.spotify.com/search/${encodeURIComponent(l.artist)}`} target="_blank" rel="noreferrer">
+                  <a className="btn sm" href={`https://open.spotify.com/search/${encodeURIComponent(`${l.artist} ${l.album ?? ''}`.trim())}`} target="_blank" rel="noreferrer">
                     Spotify
                   </a>
                 </div>
