@@ -92,11 +92,13 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
       const songs = m.application.songs
       const rot = (w - 1) % Math.max(1, songs.length)
       const ordered = [...songs.slice(rot), ...songs.slice(0, rot)]
+      const dupTitles = new Set(songs.map((s) => s.title.toLowerCase()).filter((t, i, a) => a.indexOf(t) !== i))
       const options: PartOption[] = ordered.map((s) => {
         const link = songLink(s)
         const via = link.via === 'lesson' ? 'tabs on screen · looper' : link.via === 'ear' ? 'learn it by ear · guide + looper' : null
         return {
-          label: s.title,
+          // Same title by two artists in one module (three "Amazing Grace"s): keep the labels distinct.
+          label: dupTitles.has(s.title.toLowerCase()) && s.artist ? `${s.title} (${s.artist})` : s.title,
           sub: [s.artist, via, s.note].filter(Boolean).join(' · ') || undefined,
           url: link.url,
           kind: pieceTitles.includes(s.title.toLowerCase()) ? 'goal' : s.note?.toLowerCase().includes('discover') ? 'discover' : 'song',
