@@ -67,6 +67,11 @@ export function VideoFinder({ query, exclude, onPick, heading = 'Find the transc
           </form>
           <p className="small muted">Results stay inside the app. The hint under each title is a guess from the title; the player decides once it's playing.</p>
           {err && <p className="small" style={{ color: 'var(--amber)' }}>{err}</p>}
+          {hits && hits.length > 0 && hits.every((h) => h.score < 3) && (
+            <p className="small" style={{ color: 'var(--amber)' }}>
+              None of these look like transcriptions with tabs on screen. Pick one to check, or use "New song, same idea" / "Learn it by ear" below.
+            </p>
+          )}
           {hits && hits.length > 0 && (
             <ul className="video-hits">
               {hits.map((h) => (
