@@ -40,3 +40,4 @@ Things from the review that need a decision or a design conversation before buil
 - Practice page: any length, exercise pages, no inline Lab, no Why lines, Share/Copy, self-filling log with tempo. Guided kept as a Settings option.
 - Activity log on the device; weekly coach review with accept/veto and memory; end-of-module re-checks; vamp loops for concepts.
 - Still open: a microphone level meter as a "sound was happening" signal (no transcription); audio-assisted transcription drafts; growing the video library; the AI judge for "tabs on screen".
+- Lab (Clay, Nov 25): hybrid arpeggio shapes and player-made shapes (choose the notes yourself, keep them), plus a scale overlay next to each chord's arpeggio. The slider and the arpeggio overlay are in; shapes are the next step.

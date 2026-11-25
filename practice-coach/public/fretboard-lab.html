@@ -98,6 +98,7 @@ svg.win{width:100%;max-width:620px;display:block;margin:0 auto}
 .answer{font-family:var(--mono);color:var(--accent);min-height:1.4em}
 .score{font-family:var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
 @media (max-width:560px){.head{grid-template-columns:1fr}.nextc{text-align:left}}
+.pos-slide{width:100%;margin-top:4px;accent-color:var(--accent,#2f6b57)}
 /* Practice Coach embed (?embed=1): drop the big header so the neck fits on a phone */
 body.embed header h1, body.embed header .lede{display:none}
 body.embed header{padding-top:12px}
@@ -179,8 +180,8 @@ body.embed .panel:has(#q-neck){display:none}
       <h2>Drill</h2>
       <p class="sub">Nearest voicing of each next chord, inside your zone. Solid dots are now; outlined dots and arrows show where each voice goes. A dashed ring means that note stays.</p>
       <div class="row">
-        <button type="button" id="c-prev">&larr; Previous</button>
         <button type="button" id="c-play" class="primary">Start click</button>
+        <button type="button" id="c-prev" title="Back to the first chord">&#8635; Restart</button>
         <button type="button" id="c-next">Next &rarr;</button>
         <div class="beats" id="c-beatdots" aria-hidden="true"></div>
       </div>
@@ -188,6 +189,7 @@ body.embed .panel:has(#q-neck){display:none}
         <div><div class="big" id="c-now"></div><div class="mid" id="c-now-sub"></div><div class="say" id="c-say"></div></div>
         <div class="nextc">Next<strong id="c-nx"></strong><span id="c-nx-sub"></span></div>
       </div>
+      <label class="check"><input type="checkbox" id="c-arp"> Show this chord's arpeggio around the shape</label>
       <div class="neck-wrap"><svg class="full" id="c-drill" role="img" aria-label="Current and next chord shapes"></svg></div>
       <div class="chips" id="c-chips" aria-label="Jump to a chord"></div>
     </div>
@@ -208,7 +210,7 @@ body.embed .panel:has(#q-neck){display:none}
       <div class="controls">
         <div class="field"><label class="lbl" for="a-root">Root</label><select id="a-root"></select></div>
         <div class="field"><label class="lbl" for="a-type">Chord</label><select id="a-type"></select></div>
-        <div class="field"><label class="lbl" for="a-pos">Position</label><select id="a-pos"></select></div>
+        <div class="field"><label class="lbl" for="a-pos">Position</label><select id="a-pos"></select><input type="range" class="pos-slide" id="a-pos-slide" min="0" max="12" step="1" aria-label="Slide between positions"></div>
         <div class="field"><label class="lbl" for="a-pat">Direction</label><select id="a-pat"><option value="ud">Up and down</option><option value="up">Up only</option><option value="dn">Down only</option></select></div>
         <div class="field"><label class="lbl" for="a-start">Start on</label><select id="a-start"><option value="low">Lowest note</option><option value="r">Root</option><option value="3">3rd</option><option value="5">5th</option><option value="7">7th / 6th</option></select></div>
         <div class="field"><label class="lbl" for="a-move">Move it</label><select id="a-move"></select></div>
@@ -232,7 +234,7 @@ body.embed .panel:has(#q-neck){display:none}
         <div class="field"><label class="lbl" for="s-root">Root</label><select id="s-root"></select></div>
         <div class="field"><label class="lbl" for="s-scale">Scale or mode</label><select id="s-scale"></select></div>
         <div class="field"><label class="lbl" for="s-fing">Fingering</label><select id="s-fing"><option value="box">Position box (5 frets)</option><option value="2">2 notes per string</option><option value="3">3 notes per string</option><option value="4">4 notes per string</option></select></div>
-        <div class="field"><label class="lbl" for="s-pos">Position</label><select id="s-pos"></select></div>
+        <div class="field"><label class="lbl" for="s-pos">Position</label><select id="s-pos"></select><input type="range" class="pos-slide" id="s-pos-slide" min="0" max="12" step="1" aria-label="Slide between positions"></div>
         <div class="field" id="s-deg-f"><label class="lbl" for="s-deg">Start on degree</label><select id="s-deg"></select></div>
         <div class="field"><label class="lbl" for="s-pat">Exercise</label><select id="s-pat">
           <option value="line">Straight up and down</option><option value="3rds">In 3rds</option><option value="4ths">In 4ths</option>
@@ -416,7 +418,7 @@ var SCALES=[],SC={};SC_RAW.forEach(function(r){var s={group:r[0],id:r[1],name:r[
 
 /* ================= state ================= */
 var state={mode:"chords",bpm:60,label:"deg",clickVol:70,clickTone:"classic",
-  c:{root:"C",type:"maj",voicing:"close3",set:"0",move:"c4",custom:"Dm7 G7 Cmaj7 A7b9",zone:"mid",bass:"any",beats:"4",all:false,qmode:"name"},
+  c:{root:"C",type:"maj",voicing:"close3",set:"0",move:"c4",custom:"Dm7 G7 Cmaj7 A7b9",zone:"mid",bass:"any",beats:"4",all:false,arp:false,qmode:"name"},
   a:{root:"C",type:"maj7",pos:"5",pat:"ud",start:"low",move:"static",custom:"Dm7 G7 Cmaj7",rate:"2"},
   s:{root:"C",scale:"ionian",fing:"box",pos:"5",deg:"0",pat:"line",rate:"2"},
   t:{ex:"spider",perm:"1234",pair:"13",pos:"5",rounds:"3",rate:"2"}};
@@ -594,6 +596,10 @@ var MOVES=[["static","Stay on this chord"],["c4","Cycle of 4ths"],["c5","Cycle o
 function fillRoots(id){var s=$(id);ROOTS.forEach(function(r){opt(s,r,nm(parseNote(r)));});}
 function fillGrouped(id,list){var s=$(id),g=null,og=null;list.forEach(function(it){if(it.group!==g){g=it.group;og=document.createElement("optgroup");og.label=g;s.appendChild(og);}var o=document.createElement("option");o.value=it.id;o.textContent=it.name+(it.sym!=null?" ("+(it.sym||"maj")+")":"");og.appendChild(o);});}
 function fillPositions(id){var s=$(id);for(var f=0;f<=12;f++)opt(s,String(f),f===0?"Open to 4":"Frets "+f+"–"+(f+4));}
+/* A slider under the Position select: drag to slide the box up and down the neck; both stay in sync. */
+function slidePos(id,grp){var sel=$(id),sl=$(id+"-slide");if(!sl)return;sl.value=state[grp].pos;
+  sl.addEventListener("input",function(){if(sel.value!==sl.value){sel.value=sl.value;sel.dispatchEvent(new Event("change"));}});
+  sel.addEventListener("change",function(){sl.value=sel.value;});}
 function bind(id,grp,key,cb){var e=$(id);e.value=state[grp][key];e.addEventListener("change",function(){state[grp][key]=e.type==="checkbox"?e.checked:e.value;save();cb(key);});if(e.type==="checkbox")e.checked=!!state[grp][key];}
 
 /* ================= CHORDS ================= */
@@ -641,8 +647,10 @@ function renderChordDrill(){
   $("c-nx").textContent=P.length>1?n.cs.label:"";$("c-nx-sub").textContent=P.length>1?degLabel(n.sh.bass)+" in bass":"";
   var mn=Math.min(p.sh.min,n.sh.min),mx=Math.max(p.sh.max,n.sh.max),from=Math.max(0,mn-2),to=Math.min(17,Math.max(from+7,mx+2)),moves=[],ghost=[];
   if(P.length>1)p.sh.frets.forEach(function(f,j){moves.push({s:p.sh.strings[j],f1:f,f2:n.sh.frets[j]});if(n.sh.frets[j]!==f)ghost.push({s:n.sh.strings[j],f:n.sh.frets[j],c:clsOf(n.sh.toks[j]),label:lab(n.cs,n.sh.toks[j])});});
-  var fullTo=Math.max(15,to);
-  renderNeck($("c-drill"),{from:0,to:fullTo,solid:shapeDots(p.sh,p.cs),ghost:ghost,moves:moves,active:p.sh.strings});
+  var fullTo=Math.max(15,to),faint=[];
+  if(state.c.arp){var onShape={};p.sh.strings.forEach(function(st,j){onShape[st+":"+p.sh.frets[j]]=1;});
+    for(var s6=0;s6<6;s6++)for(var f6=0;f6<=fullTo;f6++){var i6=p.cs.pcs.indexOf((OPEN[s6]+f6)%12);if(i6>=0&&!onShape[s6+":"+f6])faint.push({s:s6,f:f6,c:p.cs.cls[i6],label:lab(p.cs,p.cs.degs[i6])});}}
+  renderNeck($("c-drill"),{from:0,to:fullTo,solid:shapeDots(p.sh,p.cs),ghost:ghost,moves:moves,active:p.sh.strings,faint:faint});
   scrollNeckTo($("c-drill"),(mn+mx)/2,fullTo);
   var ch=$("c-chips");ch.innerHTML="";
   P.forEach(function(it,idx){var b=document.createElement("button");b.type="button";b.textContent=it.cs.label+" /"+degLabel(it.sh.bass);if(idx===cDrill.i){b.className="cur";b.setAttribute("aria-current","step");}
@@ -652,14 +660,14 @@ function cStep(d){if(!cDrill.path.length)return;cDrill.i=(cDrill.i+d+cDrill.path
 function cBeats(on){var n=+state.c.beats,b=$("c-beatdots");b.innerHTML="";for(var i=0;i<n;i++){var s=document.createElement("span");s.className=(i===0?"first":"")+(i===on?" on":"");b.appendChild(s);}}
 var cOwner={btn:"c-play",tpb:function(){return 1;},accent:function(){return +state.c.beats;},onTick:function(k){var per=+state.c.beats;if(k%per===0&&k>0)cStep(1);cBeats(k%per);},onStop:function(){cBeats(-1);}};
 $("c-play").addEventListener("click",function(){metro.on&&metro.owner===cOwner?metroStop():metroStart(cOwner);});
-$("c-prev").addEventListener("click",function(){cStep(-1);});$("c-next").addEventListener("click",function(){cStep(1);});
+$("c-prev").addEventListener("click",function(){cDrill.i=0;if(metro.on&&metro.owner===cOwner){metro.tick=0;}renderChordDrill();cBeats(metro.on?0:-1);});$("c-next").addEventListener("click",function(){cStep(1);});
 function chordsAll(rebuild){$("c-custom-f").hidden=state.c.move!=="custom";renderChords();if(rebuild!==false){cDrill.i=0;buildChordPath();}renderChordDrill();newQuiz();}
 bind("c-root","c","root",function(){chordsAll();});bind("c-type","c","type",function(){chordsAll();});
 bind("c-voicing","c","voicing",function(){fillSets();save();chordsAll();});
 fillSets();bind("c-set","c","set",function(){chordsAll();});
 ["c-move","c-zone","c-bass","c-custom"].forEach(function(id){bind(id,"c",id.slice(2),function(){chordsAll();});});
 bind("c-beats","c","beats",function(){cBeats(-1);});
-bind("c-all","c","all",function(){renderChords();});
+bind("c-all","c","all",function(){renderChords();});bind("c-arp","c","arp",function(){renderChordDrill();});
 
 /* quiz */
 var quiz={it:null,rev:false,got:0,miss:0};
@@ -693,7 +701,7 @@ $("q-skip").addEventListener("click",newQuiz);
 /* ================= STEPPER (arpeggios, scales, technique) ================= */
 function makeStepper(px,host,rateFn){
   var h=$(host);
-  h.innerHTML='<h2>Drill</h2><div class="row"><button type="button" id="'+px+'-prev">&larr; Previous</button><button type="button" id="'+px+'-play" class="primary">Start click</button><button type="button" id="'+px+'-next">Next &rarr;</button></div>'+
+  h.innerHTML='<h2>Drill</h2><div class="row"><button type="button" id="'+px+'-play" class="primary">Start click</button><button type="button" id="'+px+'-prev" title="Back to the first note">&#8635; Restart</button><button type="button" id="'+px+'-next">Next &rarr;</button></div>'+
    '<div class="head"><div><div class="big" id="'+px+'-now"></div><div class="mid" id="'+px+'-sub"></div></div><div class="nextc">Next<strong id="'+px+'-nx"></strong></div></div>'+
    '<div class="neck-wrap"><svg class="full" id="'+px+'-neck" role="img" aria-label="Current note"></svg></div><div class="strip" id="'+px+'-strip" aria-label="Upcoming notes"></div>';
   var st={ev:[],i:0};
@@ -712,7 +720,7 @@ function makeStepper(px,host,rateFn){
   var owner={btn:px+"-play",tpb:function(){return +rateFn();},accent:function(){return 4;},onTick:function(k){if(k>0)st.step(1);}};
   st.owner=owner;
   $(px+"-play").addEventListener("click",function(){if(metro.on&&metro.owner===owner)metroStop();else{st.i=0;st.render();metroStart(owner);}});
-  $(px+"-prev").addEventListener("click",function(){st.step(-1);});$(px+"-next").addEventListener("click",function(){st.step(1);});
+  $(px+"-prev").addEventListener("click",function(){st.i=0;if(metro.on&&metro.owner===owner)metro.tick=0;st.render();});$(px+"-next").addEventListener("click",function(){st.step(1);});
   return st;
 }
 function boxPool(pcs,a,b){var pool=[],seen={};for(var s=0;s<6;s++)for(var f=a;f<=b;f++){var p=OPEN[s]+f,i=pcs.indexOf(p%12);if(i>=0)pool.push({s:s,f:f,p:p,i:i});}
@@ -744,7 +752,7 @@ function renderArps(){
   });
   aStep.set(ev);
 }
-["a-root","a-type","a-pos","a-pat","a-start","a-move","a-custom","a-rate"].forEach(function(id){bind(id,"a",id.slice(2),function(){renderArps();});});
+["a-root","a-type","a-pos","a-pat","a-start","a-move","a-custom","a-rate"].forEach(function(id){bind(id,"a",id.slice(2),function(){renderArps();});});slidePos("a-pos","a");
 
 /* ================= SCALES ================= */
 fillRoots("s-root");fillGrouped("s-scale",SCALES);fillPositions("s-pos");
@@ -780,7 +788,7 @@ function renderScales(){
     ev.push({s:x.s,f:x.f,c:cs.cls[x.i],label:lab(cs,cs.degs[x.i]),big:cs.rootName+" "+S.name,sub:cs.names[x.i]+" · "+degLabel(cs.degs[x.i])+" · "+SNAME[x.s]+" string, fret "+x.f,pool:dots,win:win,gs:n===0});});});
   sStep.set(ev);
 }
-["s-root","s-scale","s-fing","s-pos","s-deg","s-pat","s-rate"].forEach(function(id){bind(id,"s",id.slice(2),function(){renderScales();});});
+["s-root","s-scale","s-fing","s-pos","s-deg","s-pat","s-rate"].forEach(function(id){bind(id,"s",id.slice(2),function(){renderScales();});});slidePos("s-pos","s");
 
 /* ================= TECHNIQUE ================= */
 (function(){var s=$("t-perm"),out=[];function perm(a,p){if(!a.length){out.push(p);return;}a.forEach(function(x,i){perm(a.slice(0,i).concat(a.slice(i+1)),p+x);});}perm(["1","2","3","4"],"");out.forEach(function(p){opt(s,p,p.split("").join("-"));});})();
@@ -831,7 +839,7 @@ function showMode(m){if(MODES.indexOf(m)<0)m="chords";if(metro.on)metroStop();st
   MODES.forEach(function(x){$("mode-"+x).hidden=x!==m;$("tab-"+x).setAttribute("aria-selected",x===m?"true":"false");});
   if(location.hash!=="#"+m){try{history.replaceState(null,"","#"+m);}catch(e){}}}
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){showMode(b.getAttribute("data-mode"));});});
-function syncControls(){fillSets();["c","a","s","t"].forEach(function(g){for(var k in state[g]){var e=$(g+"-"+k);if(!e)continue;if(e.type==="checkbox")e.checked=!!state[g][k];else e.value=state[g][k];}});bpm.value=state.bpm;labs.value=state.label;}
+function syncControls(){["a","s"].forEach(function(g){var sl=$(g+"-pos-slide");if(sl)sl.value=state[g].pos;});fillSets();["c","a","s","t"].forEach(function(g){for(var k in state[g]){var e=$(g+"-"+k);if(!e)continue;if(e.type==="checkbox")e.checked=!!state[g][k];else e.value=state[g][k];}});bpm.value=state.bpm;labs.value=state.label;}
 window.addEventListener("hashchange",function(){var h=location.hash.slice(1);
   if(h.indexOf("=")>=0){var m=applyPreset(presetParams());syncControls();renderAll();showMode(m||state.mode);return;}
   showMode(h);});
