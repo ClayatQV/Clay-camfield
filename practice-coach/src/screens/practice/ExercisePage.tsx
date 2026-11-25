@@ -10,6 +10,8 @@ import { useLabTimer } from '../../lib/labTimer'
 import { href, navigate } from '../../lib/router'
 import { lastDetail, suggestedTempo } from '../../lib/sessionScale'
 import { tempoTarget } from '../../ai/review'
+import { VampPlayer } from '../../components/VampPlayer'
+import { vampFor } from '../../lib/vamp'
 import { effectiveTheme } from '../../lib/theme'
 import { elapsedOf, pauseAll, resetPartClock, setPartTempo, startPart, toggleDone } from '../../store/actions'
 import { usePractice } from './usePractice'
@@ -151,6 +153,10 @@ export function ExercisePage({ partId, query }: { partId: string; query: URLSear
         </div>
       </section>
 
+      {part.id !== 'application' && (() => {
+        const bars = vampFor(part.vamp, part.focus, part.instruction)
+        return bars.length ? <VampPlayer key={part.id} initial={bars} bpm={part.vampBpm ?? 80} label={`Loop it · ${bars.map((b) => b.chord.symbol).join(' ')}`} /> : null
+      })()}
       {part.id === 'application' ? (
         <ApplicationTool part={part} moduleId={moduleId} />
       ) : part.labLinks?.length ? (

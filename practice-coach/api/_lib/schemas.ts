@@ -71,6 +71,8 @@ export const ModuleSchema = z.object({
     label: z.string(),
     instruction: z.string().describe('2–3 sentences: exactly what to do today'),
     lab: z.string().nullable(),
+    vamp: z.string().nullable().describe('the chords to loop while doing it, one bar per "|", e.g. "G7 | G7 | Cmaj7 | Cmaj7" or "Dm7 | G7 | Cmaj7 | Cmaj7"; null when the concept is not played over a vamp'),
+    vampBpm: z.number().int().nullable().describe('starting tempo for the vamp, 40–200'),
   }),
   emphasis: z.string().nullable().describe('the ONE genre this module\'s songs and transcriptions are in (recommended for this player; the player can change it)'),
   listening: z.array(z.string()).describe('up to two genres to listen in during this module, for diversity; the first is usually the emphasis'),
@@ -218,6 +220,23 @@ export const SongsRequestSchema = z.object({
   result: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 export type SongsRequest = z.infer<typeof SongsRequestSchema>
+
+/* ---------------- end-of-module re-check ---------------- */
+
+export const RecheckScreenSchema = ScreenSchema.extend({
+  skill: z.string().describe('the skill this question measures, copied EXACTLY from the skills list given'),
+})
+export type RecheckScreen = z.infer<typeof RecheckScreenSchema>
+
+export const RecheckResponseSchema = z.object({ screens: z.array(RecheckScreenSchema).describe('exactly two screens: one quiz with a right answer, one yn at the level the module aimed for') })
+export type RecheckResponse = z.infer<typeof RecheckResponseSchema>
+
+export const RecheckRequestSchema = z.object({
+  module: z.object({ title: z.string(), concept: z.string(), trains: z.array(z.string()), doneWhen: z.array(z.string()) }),
+  skills: z.array(z.object({ skill: z.string(), level: z.number().int() })).max(30),
+  checks: z.array(z.object({ text: z.string(), done: z.boolean() })).max(10),
+})
+export type RecheckRequest = z.infer<typeof RecheckRequestSchema>
 
 /* ---------------- the weekly coach review ---------------- */
 

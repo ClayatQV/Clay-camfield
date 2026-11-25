@@ -4,7 +4,7 @@
  */
 import { ask } from './claude.js'
 import { cleanLabQuery } from './lab-vocab.js'
-import { BLOCK_BUDGET, earSystem, earUser, reviewSystem, reviewUser, songsSystem, songsUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
+import { BLOCK_BUDGET, earSystem, earUser, recheckSystem, recheckUser, reviewSystem, reviewUser, songsSystem, songsUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
 import {
   EarGuideSchema,
   type EarGuide,
@@ -15,6 +15,9 @@ import {
   ReviewSchema,
   type Review,
   type ReviewRequest,
+  RecheckResponseSchema,
+  type RecheckRequest,
+  type RecheckResponse,
   InterviewResponseSchema,
   ModuleSchema,
   ModulesSchema,
@@ -73,7 +76,7 @@ function cleanModule(m: AiModule): AiModule {
     listen: (m.listen ?? []).slice(0, 3),
     application: { ...m.application, songs },
     warmups: m.warmups.map((w) => ({ ...w, lab: cleanLabQuery(w.lab) })),
-    concept: { ...m.concept, lab: cleanLabQuery(m.concept.lab) },
+    concept: { ...m.concept, lab: cleanLabQuery(m.concept.lab), vamp: m.concept.vamp?.slice(0, 120) ?? null, vampBpm: m.concept.vampBpm && m.concept.vampBpm >= 40 && m.concept.vampBpm <= 200 ? m.concept.vampBpm : null },
   }
 }
 
@@ -100,6 +103,13 @@ export async function songs(req: SongsRequest): Promise<SongsResponse> {
     return true
   })
   return { ...out, songs }
+}
+
+/** Two questions with right answers when a module ends; the skill map moves on proof. */
+export async function recheck(req: RecheckRequest): Promise<RecheckResponse> {
+  const out = await ask({ system: recheckSystem(), user: recheckUser(req), schema: RecheckResponseSchema, effort: 'low', maxTokens: 2000 })
+  const ok = out.screens.filter((s) => (s.kind === 'quiz' && s.options && s.options.length >= 2 && s.correct) || s.kind === 'yn').slice(0, 2)
+  return { screens: ok }
 }
 
 /** The weekly review: observations and small proposals, each with evidence. */

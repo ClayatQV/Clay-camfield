@@ -2059,3 +2059,25 @@ table.skeleton td {
     flex-direction: column;
   }
 }
+
+/* ---------------- vamp player ---------------- */
+.vamp-bars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+.vamp-bar {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-weight: 700;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 56px;
+  text-align: center;
+}
+.vamp-bar.on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}

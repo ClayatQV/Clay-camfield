@@ -120,6 +120,7 @@ export function resultsUser(req: { turns: Turn[]; notes: string | null; summarie
 /* ---------------- modules ---------------- */
 
 const MODULE_RULES = `Each module is a focused unit of practice. Default length is 1 week; use 2 or 3 only when the material genuinely needs it (players repeat modules anyway, and nobody wants a 17-week commitment). Name it for the music or outcome, not the exercise. The why is one line in THIS player's terms — no name-dropping other players unless the player named them. "towards" = the signature piece it serves, if any. Two daily warm-ups on their actual gaps (fundamentals ride along here, about 30% of a session) with Fretboard Lab presets; a concept with a precise instruction for what to do today; an application with 3–5 real songs/solos to choose from (their named pieces first when relevant; songs from their genres they know but haven't learned; one discovery pick from a neighboring genre); 2–3 concrete doneWhen checks phrased as things you can hear yourself do. Keep the player inspired: variety, choice, visible wins. A "listening first" genre gets a short listening-and-learning module.
+VAMP. When the concept is practised over chords ("loop a G7 vamp", "over the ii–V–I"), put the chords in concept.vamp, one bar per "|", real chord symbols (G7, Cmaj7, Am7, D7b9), 2–8 bars, and a starting vampBpm (60–100 for new material). The app turns it into a looping backing track. Null when it isn't played over chords.
 GENRE EMPHASIS. Every module has ONE emphasis genre (from: ${GENRES_TEXT}, or the player's own wording): the genre its songs and transcriptions are in. Recommend it from the player's ranked genres and the idea (a ♭9 module for a blues-first player → Blues; the same idea exists in gospel, R&B, jazz, country, fusion and funk, and the player can switch). All application songs must be in the emphasis genre. "listening" is up to two genres for that module's listening, for diversity (the emphasis plus a neighbour, or two of their ranked genres); "listen" is 2–3 real albums from those genres with a one-line why.`
 
 export function modulesSystem(): string {
@@ -161,6 +162,17 @@ export function songsUser(req: { module: unknown; genre: string; count: number; 
   ]
     .filter(Boolean)
     .join('\n\n')
+}
+
+/* ---------------- end-of-module re-check ---------------- */
+
+export function recheckSystem(): string {
+  return `You write a two-question re-check for Practice Coach when a player finishes a practice module. Proof, not self-report: the skill map only moves on evidence.
+Return exactly two screens: (1) a quiz with one right answer about the module's concept (a note, a chord, a scale choice, a resolution: something a player who really has it answers in two seconds); (2) a yn question at the level the module aimed for ("Can you play four half-whole lines over A7 that land on a chord tone of D7, at the song's tempo, without stopping?"), with level 2 (apply) or 3 (fluid). Each screen names the skill it measures, copied exactly from the skills list. Short prompts, specific options (≤5), no praise, no filler. Never write "tap"; say choose or pick.`
+}
+
+export function recheckUser(req: { module: unknown; skills: unknown; checks: unknown }): string {
+  return `MODULE: ${JSON.stringify(req.module)}\n\nSKILLS (name = level 0–5): ${JSON.stringify(req.skills)}\n\nDONE-WHEN CHECKS: ${JSON.stringify(req.checks)}\n\nWrite the two screens.`
 }
 
 /* ---------------- the weekly coach review ---------------- */

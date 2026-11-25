@@ -31,7 +31,7 @@ export function moduleFromBlock(b: PlanBlock): AiModule | null {
       { label: parts[0].focus, instruction: parts[0].instruction, lab: lab(parts[0]) },
       { label: parts[1].focus, instruction: parts[1].instruction, lab: lab(parts[1]) },
     ],
-    concept: { label: parts[2].focus, instruction: parts[2].instruction, lab: lab(parts[2]) },
+    concept: { label: parts[2].focus, instruction: parts[2].instruction, lab: lab(parts[2]), vamp: parts[2].vamp ?? null, vampBpm: parts[2].vampBpm ?? null },
     application: { instruction: parts[3].instruction, songs },
     doneWhen: b.doneWhen ?? [],
   }

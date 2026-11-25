@@ -35,3 +35,8 @@ Things from the review that need a decision or a design conversation before buil
     - **Reroll on any song.** If the player doesn't like the song chosen for the transcription, a "Pick a new song" button asks the coach for another in the same genre that teaches the same idea, keeping what they've already rejected out.
     - **Decided: a genre change touches only the songs.** The concept (a dominant ♭9, a diminished ♭9 sound), the warm-ups and the done-when checks stay as they are; only the application songs and their transcription videos change, because the same ♭9 sound lives in gospel, R&B, jazz, country, fusion and funk. If the student isn't inspired by the chosen song, "Pick a new song" regenerates a different transcription video for the same idea in the same genre.
     - Build notes: `emphasis` (one genre) and `listening` (up to two genres) become fields on the module; the module writer, Swap and Add take them as hard constraints; the genre drop-down and the reroll call the single-module route for songs only, with the concept, the genre and the rejected titles; rerolled songs that match the transcription library link straight to the lesson. Lab warm-ups stay neutral.
+
+## Built Nov 25 (from the Nov 25 review)
+- Practice page: any length, exercise pages, no inline Lab, no Why lines, Share/Copy, self-filling log with tempo. Guided kept as a Settings option.
+- Activity log on the device; weekly coach review with accept/veto and memory; end-of-module re-checks; vamp loops for concepts.
+- Still open: a microphone level meter as a "sound was happening" signal (no transcription); audio-assisted transcription drafts; growing the video library; the AI judge for "tabs on screen".

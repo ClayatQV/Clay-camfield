@@ -19,7 +19,7 @@ export const FIXTURE_MODULES: AiModule[] = [
       { label: 'Drop 2 maj7 through the cycle', instruction: 'All four inversions on the top four strings, nearest shape each time, say the chord tones.', lab: 'mode=chords&root=C&type=maj7&voicing=drop2&move=c4' },
       { label: 'Spider at 90, +5 a day', instruction: 'One finger per fret, stop at the first sloppy note.', lab: 'mode=technique&ex=spider&pos=5&bpm=90' },
     ],
-    concept: { label: 'E minor pentatonic + the 6th, frets 12–17', instruction: 'Loop bars 7–9 at 0.5× with the speed ladder. Say the note names. Hear the C♯ as Dorian, then the G major pentatonic over Cmaj7.', lab: 'mode=scales&root=E&scale=minpent&pos=12' },
+    concept: { label: 'E minor pentatonic + the 6th, frets 12–17', instruction: 'Loop bars 7–9 at 0.5× with the speed ladder. Say the note names. Hear the C♯ as Dorian, then the G major pentatonic over Cmaj7.', lab: 'mode=scales&root=E&scale=minpent&pos=12', vamp: null, vampBpm: null },
     application: {
       instruction: 'Pick one and learn it from a video with the tabs on screen; then solo over it using only this week’s idea.',
       songs: [
@@ -45,7 +45,7 @@ export const FIXTURE_MODULES: AiModule[] = [
       { label: 'Shells R·3·7 · ii–V–I', instruction: 'Through the cycle, smallest move between shapes.', lab: 'mode=chords&root=C&type=maj7&voicing=shell37&set=0&move=251' },
       { label: 'ii–V–I arpeggios from the 3rd', instruction: 'Position 5, click at 60.', lab: 'mode=arpeggios&root=C&type=maj7&pos=5&move=251&start=3&bpm=60' },
     ],
-    concept: { label: 'Two-note guide-tone line, all 12 keys', instruction: 'Dm7 (F, C) → G7 (F, B) → Cmaj7 (E, B). One note moves, one holds. Then over the tune’s A section.', lab: null },
+    concept: { label: 'Two-note guide-tone line, all 12 keys', instruction: 'Dm7 (F, C) → G7 (F, B) → Cmaj7 (E, B). One note moves, one holds. Then over the tune’s A section.', lab: null, vamp: null, vampBpm: null },
     application: {
       instruction: 'Melody first, then a chorus using only guide tones and chord tones.',
       songs: [
@@ -70,7 +70,7 @@ export const FIXTURE_MODULES: AiModule[] = [
       { label: 'Drop 3 · ii–V–I', instruction: 'Root on the 6th string, through the cycle.', lab: 'mode=chords&root=C&type=maj7&voicing=drop3&move=251' },
       { label: 'Major triads · G–B–E', instruction: 'Cycle of 4ths, nearest inversion.', lab: 'mode=chords&root=C&type=maj&voicing=close3&set=GBE&move=c4' },
     ],
-    concept: { label: 'Melody on top with triads', instruction: 'Play the hymn melody on the top two strings and put a triad under each strong-beat note.', lab: null },
+    concept: { label: 'Melody on top with triads', instruction: 'Play the hymn melody on the top two strings and put a triad under each strong-beat note.', lab: null, vamp: null, vampBpm: null },
     application: {
       instruction: 'Arrange the first verse.',
       songs: [
@@ -95,7 +95,7 @@ export const FIXTURE_MODULES: AiModule[] = [
       { label: 'maj7 arpeggios · cycle', instruction: 'Click at 60.', lab: 'mode=arpeggios&root=C&type=maj7&pos=5&move=c4&bpm=60' },
       { label: 'Major scale with note names', instruction: 'Say every note.', lab: 'mode=scales&root=G&scale=ionian&pos=2&label=note' },
     ],
-    concept: { label: 'One record a day, one melody by ear', instruction: 'Kind of Blue, Smokin’ at the Half Note, The Incredible Jazz Guitar. Learn 8 bars of a melody by ear from each.', lab: null },
+    concept: { label: 'One record a day, one melody by ear', instruction: 'Kind of Blue, Smokin’ at the Half Note, The Incredible Jazz Guitar. Learn 8 bars of a melody by ear from each.', lab: null, vamp: null, vampBpm: null },
     application: {
       instruction: 'Play the melody you learned along with the record.',
       songs: [

@@ -43,9 +43,11 @@ export function buildReviewRequest(data: AppData, today: DayKey) {
         .join('\n')
     : `(no sessions logged in the last ${DAYS_BACK} days)`
 
-  const checksText = block.doneWhen?.length
-    ? block.doneWhen.map((t, i) => `${data.doneWhen[doneKey(plan, pos.block, i)] ? '[x]' : '[ ]'} ${t}`).join('\n')
-    : null
+  const recheckText = data.coach.rechecks
+    .slice(-4)
+    .map((r) => `${r.at.slice(0, 10)} re-check (module ${r.moduleId}): ${r.results.map((x) => `${x.skill}: ${x.passed ? 'passed' : 'missed'}${x.level ? ` (level ${x.level})` : ''}`).join('; ')}`)
+    .join('\n')
+  const checksText = [block.doneWhen?.length ? block.doneWhen.map((t, i) => `${data.doneWhen[doneKey(plan, pos.block, i)] ? '[x]' : '[ ]'} ${t}`).join('\n') : '', recheckText].filter(Boolean).join('\n') || null
 
   const decisions = data.coach.reviews
     .slice(-3)

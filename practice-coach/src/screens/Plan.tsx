@@ -15,6 +15,7 @@ import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
 import { ModuleGenre } from '../components/ModuleGenre'
 import { CoachReview } from '../components/CoachReview'
+import { RecheckCard } from '../components/RecheckCard'
 import { moduleIn } from '../ai/actions'
 
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
@@ -189,6 +190,8 @@ function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
           {plan.source === 'assessment' && b.focusId !== 'together' && <SwapBlock n={n} />}
         </section>
       )}
+
+      {b.focusId?.startsWith('ai:') && moduleIn(data, b.focusId.slice(3)) && <RecheckCard plan={plan} block={n} />}
 
       {b.focusId?.startsWith('ai:') && moduleIn(data, b.focusId.slice(3)) && (
         <section className="card">

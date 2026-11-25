@@ -57,6 +57,9 @@ export type SessionPart = {
   options?: PartOption[]
   /** One line: why this part matters for the player's vision. */
   why?: string
+  /** Chords to loop while doing it ("G7 | G7 | Cmaj7 | Cmaj7") and a starting tempo. */
+  vamp?: string
+  vampBpm?: number
 }
 
 export type PartOption = { label: string; sub?: string; url: string; kind: 'song' | 'listen' | 'lesson' | 'discover' | 'goal' }

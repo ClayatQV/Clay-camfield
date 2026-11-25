@@ -41,7 +41,8 @@ export type Session = {
 
 /** A weekly review from the coach, with the player's decisions on its proposals. */
 export type CoachReview = { id: string; at: string; note: string; proposals: (Proposal & { status: 'open' | 'accepted' | 'vetoed' })[] }
-export type CoachState = { memory: string | null; lastReviewAt: string | null; reviews: CoachReview[]; tempoTargets: Record<string, number> }
+export type Recheck = { at: string; moduleId: string; results: { skill: string; question: string; passed: boolean; level: number | null }[] }
+export type CoachState = { memory: string | null; lastReviewAt: string | null; reviews: CoachReview[]; tempoTargets: Record<string, number>; rechecks: Recheck[] }
 
 /** One line of the activity log. */
 export type AppEvent = { t: string; type: string; page?: string } & Record<string, unknown>
@@ -196,7 +197,7 @@ export function defaultData(): AppData {
     ear: {},
     songs: {},
     events: [],
-    coach: { memory: null, lastReviewAt: null, reviews: [], tempoTargets: {} },
+    coach: { memory: null, lastReviewAt: null, reviews: [], tempoTargets: {}, rechecks: [] },
     draft: null,
     labTime: {},
     assessment: { draft: null, results: [], dismissedPrompt: false },
@@ -302,6 +303,7 @@ export function normalize(raw: unknown): AppData {
         ? (c.reviews.filter((r) => isObj(r) && typeof r.id === 'string' && typeof r.note === 'string' && Array.isArray(r.proposals)) as unknown as CoachReview[]).slice(-12)
         : [],
       tempoTargets: isObj(c.tempoTargets) ? Object.fromEntries(Object.entries(c.tempoTargets).filter(([, v]) => Number(v) >= 30).map(([k, v]) => [k, Math.round(Number(v))])) : {},
+      rechecks: Array.isArray(c.rechecks) ? (c.rechecks.filter((r) => isObj(r) && typeof r.moduleId === 'string' && Array.isArray(r.results)) as unknown as Recheck[]).slice(-40) : [],
     }
   }
   if (Array.isArray(raw.events)) {

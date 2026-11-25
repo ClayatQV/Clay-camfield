@@ -91,6 +91,8 @@ export function planFromModules(result: AiResult, modules: AiModule[], now = new
         minutes: MIN.concept,
         labLinks: labUrl(m.concept.lab) ? [{ label: m.concept.label, labUrl: labUrl(m.concept.lab)! }] : [],
         why: m.why,
+        vamp: m.concept.vamp ?? undefined,
+        vampBpm: m.concept.vampBpm ?? undefined,
       }
       // Rotate which song leads each week so the choice stays fresh.
       const songs = m.application.songs
