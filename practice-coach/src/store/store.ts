@@ -11,7 +11,7 @@ import { isValidKey, todayKey, type DayKey } from '../lib/dates'
 import type { Answers } from '../assessment/types'
 import type { AssessmentResult } from '../assessment/scoring'
 import type { GeneratedPlan } from '../plan/model'
-import type { AiModule, AiResult, AiScreen, BlockId, EarGuide } from '../../api/_lib/schemas'
+import type { AiModule, AiResult, AiScreen, BlockId, EarGuide, Proposal } from '../../api/_lib/schemas'
 import { moduleFromBlock } from '../plan/moduleFromBlock'
 
 export const STORAGE_KEY = 'practice-coach'
@@ -38,6 +38,10 @@ export type Session = {
   partDetails?: { part: PartId; label: string; minutes: number; tempo: number | null }[]
   finishedAt: string
 }
+
+/** A weekly review from the coach, with the player's decisions on its proposals. */
+export type CoachReview = { id: string; at: string; note: string; proposals: (Proposal & { status: 'open' | 'accepted' | 'vetoed' })[] }
+export type CoachState = { memory: string | null; lastReviewAt: string | null; reviews: CoachReview[]; tempoTargets: Record<string, number> }
 
 /** One line of the activity log. */
 export type AppEvent = { t: string; type: string; page?: string } & Record<string, unknown>
@@ -159,6 +163,7 @@ export type AppData = {
   songs: Record<string, SongVideo>
   /** The activity log (capped; see lib/events.ts). */
   events: AppEvent[]
+  coach: CoachState
   draft: Draft | null
   labTime: LabTime
   assessment: AssessmentState
@@ -191,6 +196,7 @@ export function defaultData(): AppData {
     ear: {},
     songs: {},
     events: [],
+    coach: { memory: null, lastReviewAt: null, reviews: [], tempoTargets: {} },
     draft: null,
     labTime: {},
     assessment: { draft: null, results: [], dismissedPrompt: false },
@@ -285,6 +291,17 @@ export function normalize(raw: unknown): AppData {
         guide: isObj(v.guide) && isObj(v.guide.underlying) && Array.isArray(v.guide.sections) ? (v.guide as unknown as EarGuide) : null,
         guideAt: typeof v.guideAt === 'string' ? v.guideAt : null,
       }
+    }
+  }
+  if (isObj(raw.coach)) {
+    const c = raw.coach
+    d.coach = {
+      memory: typeof c.memory === 'string' && c.memory ? c.memory : null,
+      lastReviewAt: typeof c.lastReviewAt === 'string' ? c.lastReviewAt : null,
+      reviews: Array.isArray(c.reviews)
+        ? (c.reviews.filter((r) => isObj(r) && typeof r.id === 'string' && typeof r.note === 'string' && Array.isArray(r.proposals)) as unknown as CoachReview[]).slice(-12)
+        : [],
+      tempoTargets: isObj(c.tempoTargets) ? Object.fromEntries(Object.entries(c.tempoTargets).filter(([, v]) => Number(v) >= 30).map(([k, v]) => [k, Math.round(Number(v))])) : {},
     }
   }
   if (Array.isArray(raw.events)) {

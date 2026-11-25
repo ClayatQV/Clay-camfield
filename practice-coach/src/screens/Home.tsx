@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { splitPiece } from '../assessment/vision'
 import { AssessmentCard } from '../components/AssessmentCard'
+import { CoachReview } from '../components/CoachReview'
 import { Icon } from '../components/Icon'
 import { WeekStrip } from '../components/WeekStrip'
 import { LESSONS } from '../content/lessons'
@@ -150,6 +151,8 @@ export function Home() {
               </span>
             </div>
             <WeekStrip practiced={(d) => stats.byDay.has(d)} frozen={stats.frozen} today={today} />
+
+      <CoachReview />
           </section>
 
           {songOfDay && (

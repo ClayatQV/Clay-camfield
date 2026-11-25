@@ -4,7 +4,7 @@
  */
 import { ask } from './claude.js'
 import { cleanLabQuery } from './lab-vocab.js'
-import { BLOCK_BUDGET, earSystem, earUser, songsSystem, songsUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
+import { BLOCK_BUDGET, earSystem, earUser, reviewSystem, reviewUser, songsSystem, songsUser, interviewSystem, interviewUser, moduleSystem, moduleUser, modulesSystem, modulesUser, resultsSystem, resultsUser } from './prompts.js'
 import {
   EarGuideSchema,
   type EarGuide,
@@ -12,6 +12,9 @@ import {
   SongsResponseSchema,
   type SongsRequest,
   type SongsResponse,
+  ReviewSchema,
+  type Review,
+  type ReviewRequest,
   InterviewResponseSchema,
   ModuleSchema,
   ModulesSchema,
@@ -97,6 +100,21 @@ export async function songs(req: SongsRequest): Promise<SongsResponse> {
     return true
   })
   return { ...out, songs }
+}
+
+/** The weekly review: observations and small proposals, each with evidence. */
+export async function review(req: ReviewRequest): Promise<Review> {
+  const out = await ask({ system: reviewSystem(), user: reviewUser(req), schema: ReviewSchema, effort: 'medium', maxTokens: 4000, fast: true })
+  const seen = new Set<string>()
+  const proposals = out.proposals
+    .filter((p) => {
+      if (seen.has(p.id)) return false
+      seen.add(p.id)
+      return true
+    })
+    .slice(0, 4)
+    .map((p) => (p.change.warmup ? { ...p, change: { ...p.change, warmup: { ...p.change.warmup, lab: cleanLabQuery(p.change.warmup.lab) } } } : p))
+  return { ...out, proposals }
 }
 
 /** A learn-it-by-ear guide for a piece with no transcription. */

@@ -219,6 +219,46 @@ export const SongsRequestSchema = z.object({
 })
 export type SongsRequest = z.infer<typeof SongsRequestSchema>
 
+/* ---------------- the weekly coach review ---------------- */
+
+export const ProposalSchema = z.object({
+  id: z.string().describe('short slug, unique in this review'),
+  kind: z.enum(['tempo', 'extend', 'advance', 'swap_warmup', 'emphasis', 'session_length', 'note']).describe('what the change does; "note" = an observation with nothing to apply'),
+  title: z.string().describe('one line, in the player\'s terms, e.g. "Raise the spider to 85 bpm"'),
+  evidence: z.string().describe('the logged facts this rests on, with dates and numbers; never a guess'),
+  change: z.object({
+    label: z.string().nullable().describe('tempo/swap_warmup: the exercise label exactly as logged'),
+    bpm: z.number().int().nullable(),
+    moduleId: z.string().nullable(),
+    weeks: z.number().int().nullable().describe('extend: the new total weeks for the module'),
+    genre: z.string().nullable(),
+    minutes: z.number().int().nullable(),
+    warmup: z.object({ label: z.string(), instruction: z.string(), lab: z.string().nullable() }).nullable().describe('swap_warmup: the replacement'),
+  }),
+  risk: z.enum(['low', 'medium']).describe('low = easy to undo and small; medium = changes the plan\'s shape'),
+})
+export type Proposal = z.infer<typeof ProposalSchema>
+
+export const ReviewSchema = z.object({
+  note: z.string().describe('3–6 plain sentences: what the logs show, said to the player; specific, no flattery, no filler'),
+  proposals: z.array(ProposalSchema).describe('0 to 4, most useful first; none is a fine answer when the logs are thin'),
+  memory: z.string().describe('updated running notes about this player for the next review (≤120 words): patterns, what they accepted or vetoed, what to watch'),
+})
+export type Review = z.infer<typeof ReviewSchema>
+
+export const ReviewRequestSchema = z.object({
+  /** compact text blocks built on the client */
+  plan: z.string().max(6000),
+  sessions: z.string().max(8000),
+  activity: z.string().max(6000),
+  checks: z.string().max(2000).nullable().optional(),
+  memory: z.string().max(2000).nullable().optional(),
+  decisions: z.string().max(2000).nullable().optional().describe('earlier proposals and whether the player accepted or vetoed them'),
+  profile: z.string().max(1500).nullable().optional(),
+  today: z.string().max(10),
+})
+export type ReviewRequest = z.infer<typeof ReviewRequestSchema>
+
 /* ---------------- in-app video search ---------------- */
 
 /** One search result (defined here so the client can import the type without pulling in server code). */

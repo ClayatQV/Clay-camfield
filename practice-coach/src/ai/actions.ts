@@ -166,6 +166,12 @@ function replaceModule(next: AiModule) {
   })
 }
 
+/** Patch a module (weeks, warm-ups…) wherever it lives; the active plan is rebuilt in place. */
+export function updateModule(moduleId: string, patch: Partial<AiModule>) {
+  const m = moduleIn(getData(), moduleId)
+  if (m) replaceModule({ ...m, ...patch })
+}
+
 /** Switch the genre the module's songs live in. Asks the coach for the same idea in that genre. */
 export async function setModuleGenre(moduleId: string, genre: string): Promise<void> {
   const data = getData()

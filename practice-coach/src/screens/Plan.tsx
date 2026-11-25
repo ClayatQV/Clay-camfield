@@ -14,6 +14,7 @@ import { update, useData } from '../store/store'
 import { REPERTOIRE } from '../content/repertoire'
 import { AssessmentCard } from '../components/AssessmentCard'
 import { ModuleGenre } from '../components/ModuleGenre'
+import { CoachReview } from '../components/CoachReview'
 import { moduleIn } from '../ai/actions'
 
 const PART_NAMES: Record<PartId, string> = { triads: 'Triads', arps: 'Arpeggios', concept: 'Concept', application: 'Application' }
@@ -61,6 +62,7 @@ function PlanHome({ plan }: { plan: ActivePlan }) {
         </section>
       )}
 
+      <CoachReview always />
       <AssessmentCard />
 
       <section className="stack-sm" aria-label="Block sequence">

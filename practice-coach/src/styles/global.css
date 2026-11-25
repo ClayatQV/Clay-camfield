@@ -2035,3 +2035,27 @@ table.skeleton td {
 .log-row.done strong {
   color: var(--accent);
 }
+
+/* ---------------- coach review ---------------- */
+.coach-review p {
+  margin: 6px 0;
+}
+.proposal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.proposal.accepted {
+  border-color: var(--accent);
+}
+.proposal.vetoed {
+  opacity: 0.6;
+}
+@media (max-width: 520px) {
+  .proposal {
+    flex-direction: column;
+  }
+}

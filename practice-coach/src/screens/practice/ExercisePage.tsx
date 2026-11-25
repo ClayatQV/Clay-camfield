@@ -9,6 +9,7 @@ import { labFileUrl } from '../../lib/lab'
 import { useLabTimer } from '../../lib/labTimer'
 import { href, navigate } from '../../lib/router'
 import { lastDetail, suggestedTempo } from '../../lib/sessionScale'
+import { tempoTarget } from '../../ai/review'
 import { effectiveTheme } from '../../lib/theme'
 import { elapsedOf, pauseAll, resetPartClock, setPartTempo, startPart, toggleDone } from '../../store/actions'
 import { usePractice } from './usePractice'
@@ -69,7 +70,7 @@ export function ExercisePage({ partId, query }: { partId: string; query: URLSear
   const isRunning = running === part.id
   const done = !!active?.done[part.id]
   const last = lastDetail(data.sessions, part.shareLabel)
-  const suggest = suggestedTempo(data.sessions, part.shareLabel)
+  const suggest = tempoTarget(data, part.shareLabel) ?? suggestedTempo(data.sessions, part.shareLabel)
   const tempo = active?.tempo?.[part.id] ?? null
   const pct = target ? Math.min(100, (seconds / target) * 100) : 0
 
