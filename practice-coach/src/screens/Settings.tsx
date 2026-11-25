@@ -13,6 +13,7 @@ import {
   importBackup,
   resetAll,
   storageHealthy,
+  update,
   updateSettings,
   useData,
   type Theme,
@@ -161,25 +162,17 @@ export function Settings() {
       <section className="card">
         <h2>Session</h2>
         <div className="field">
-          <span className="label">Default session length</span>
-          <div className="seg full" role="group" aria-label="Default session length">
-            <button aria-pressed={s.sessionLength === 30} onClick={() => updateSettings({ sessionLength: 30 })}>
-              Short day
-            </button>
-            <button aria-pressed={s.sessionLength === 60} onClick={() => updateSettings({ sessionLength: 60 })}>
-              Full
-            </button>
-          </div>
-          <p className="small muted">Full is the length your plan was built for. Short day is about half, same four parts.</p>
+          <span className="label">Session length</span>
+          <p className="small muted">Set it on the Practice page (Edit next to the minutes). {s.sessionMinutes ? `Currently ${s.sessionMinutes} min.` : "Currently the plan's own length."}</p>
         </div>
         <div className="field">
           <span className="label">Practice page</span>
           <div className="seg full" role="group" aria-label="Practice page mode">
+            <button aria-pressed={!s.guided} onClick={() => updateSettings({ guided: false })}>
+              List · all four parts
+            </button>
             <button aria-pressed={s.guided} onClick={() => updateSettings({ guided: true })}>
               Guided · one part at a time
-            </button>
-            <button aria-pressed={!s.guided} onClick={() => updateSettings({ guided: false })}>
-              List · all four
             </button>
           </div>
         </div>
@@ -234,20 +227,18 @@ export function Settings() {
       <AiCoachSettings />
 
       <section className="card">
-        <h2>Share with Dad</h2>
-        <div className="field">
-          <label htmlFor="dad">Dad's phone number</label>
-          <input
-            id="dad"
-            className="input"
-            type="tel"
-            inputMode="tel"
-            autoComplete="off"
-            placeholder="+1 555 123 4567"
-            value={s.dadPhone}
-            onChange={(e) => updateSettings({ dadPhone: e.target.value })}
-          />
-          <p className="small muted">Used only for the text-message fallback. Stored on this phone, never sent anywhere.</p>
+        <h2>Activity log</h2>
+        <p className="small muted">
+          The app records what you do in it (pages, timers, Lab tempo, loops, videos, song picks) on this device, so the coach can see how you actually practice. Nothing leaves the device except a daily summary when you ask the coach for a review.
+          {' '}{data.events.length} lines kept, 60 days at most.
+        </p>
+        <div className="row">
+          <button className="btn" onClick={() => updateSettings({ activityLog: !s.activityLog })}>
+            {s.activityLog ? 'Pause recording' : 'Resume recording'}
+          </button>
+          <button className="btn ghost" onClick={() => update((d) => ({ ...d, events: [] }))}>
+            Clear the log
+          </button>
         </div>
       </section>
 

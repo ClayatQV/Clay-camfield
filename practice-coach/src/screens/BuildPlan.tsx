@@ -200,7 +200,7 @@ export function BuildPlan() {
                 ))}
               </div>
             </div>
-            <p className="why">Why: {m.why}</p>
+            <p className="muted small">{m.why}</p>
             <details>
               <summary>What's in it</summary>
               <div className="stack-sm small">

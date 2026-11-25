@@ -181,11 +181,9 @@ function BlockDetail({ n, plan }: { n: number; plan: ActivePlan }) {
       </div>
 
       {b.why && (
-        <section className="card why-card">
+        <section className="card">
           {b.towards && <span className="eyebrow">Toward “{b.towards}”</span>}
-          <p>
-            <strong>Why this block:</strong> {b.why}
-          </p>
+          <p>{b.why}</p>
           {plan.source === 'assessment' && b.focusId !== 'together' && <SwapBlock n={n} />}
         </section>
       )}

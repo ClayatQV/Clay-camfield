@@ -12,6 +12,7 @@ import type { Answers } from '../assessment/types'
 import type { AssessmentResult } from '../assessment/scoring'
 import type { GeneratedPlan } from '../plan/model'
 import type { AiModule, AiResult, AiScreen, BlockId, EarGuide } from '../../api/_lib/schemas'
+import { moduleFromBlock } from '../plan/moduleFromBlock'
 
 export const STORAGE_KEY = 'practice-coach'
 export const LAB_STORAGE_KEY = 'fretboard-lab'
@@ -33,17 +34,25 @@ export type Session = {
   partLabels?: string[]
   /** Seconds on each part's clock (for stats). Missing on sessions logged before v0.2. */
   partSeconds?: Record<PartId, number>
+  /** Per part: what it was, minutes actually spent, tempo reached (v0.6). */
+  partDetails?: { part: PartId; label: string; minutes: number; tempo: number | null }[]
   finishedAt: string
 }
+
+/** One line of the activity log. */
+export type AppEvent = { t: string; type: string; page?: string } & Record<string, unknown>
 
 export type Settings = {
   planStart: DayKey
   /** Pinned block/week. null = computed from planStart. */
   override: { block: number; week: number } | null
   sessionLength: LengthMode
-  /** Practice page: one part at a time (true) or all four cards (false). */
+  /** A custom session length in minutes (null = the plan's own length). */
+  sessionMinutes: number | null
+  /** Practice page: one part at a time (true) or the list of four (false, default). */
   guided: boolean
-  dadPhone: string
+  /** Record page, timer, Lab, loop and video activity on this device (default on). */
+  activityLog: boolean
   theme: Theme
   ladderPasses: number
 }
@@ -59,6 +68,8 @@ export type Draft = {
   startedAt: number | null
   done: Record<PartId, boolean>
   note: string
+  /** tempo reached per part today (from the Lab click or typed) */
+  tempo?: Partial<Record<PartId, number>>
 }
 
 export type LabMode = 'chords' | 'arpeggios' | 'scales' | 'technique'
@@ -146,6 +157,8 @@ export type AppData = {
   ear: Record<string, EarPiece>
   /** Songs with a chosen transcription video, keyed by songKey(title, artist). */
   songs: Record<string, SongVideo>
+  /** The activity log (capped; see lib/events.ts). */
+  events: AppEvent[]
   draft: Draft | null
   labTime: LabTime
   assessment: AssessmentState
@@ -165,8 +178,9 @@ export function defaultData(): AppData {
       planStart: todayKey(),
       override: null,
       sessionLength: 30,
-      guided: true,
-      dadPhone: '',
+      sessionMinutes: null,
+      guided: false,
+      activityLog: true,
       theme: 'system',
       ladderPasses: 4,
     },
@@ -176,6 +190,7 @@ export function defaultData(): AppData {
     moments: {},
     ear: {},
     songs: {},
+    events: [],
     draft: null,
     labTime: {},
     assessment: { draft: null, results: [], dismissedPrompt: false },
@@ -211,6 +226,14 @@ function normSession(v: unknown): Session | null {
     partSeconds: isObj(v.partSeconds)
       ? (Object.fromEntries(PART_IDS.map((p) => [p, Math.max(0, Math.round(Number((v.partSeconds as Record<string, unknown>)[p]) || 0))])) as Record<PartId, number>)
       : undefined,
+    partDetails: Array.isArray(v.partDetails)
+      ? v.partDetails
+          .filter((x) => isObj(x) && PART_IDS.includes(x.part as PartId) && typeof x.label === 'string')
+          .map((x) => {
+            const r = x as Record<string, unknown>
+            return { part: r.part as PartId, label: String(r.label), minutes: Math.max(0, Math.round(Number(r.minutes) || 0)), tempo: Number(r.tempo) >= 30 ? Math.round(Number(r.tempo)) : null }
+          })
+      : undefined,
     finishedAt: typeof v.finishedAt === 'string' ? v.finishedAt : new Date().toISOString(),
   }
 }
@@ -226,8 +249,9 @@ export function normalize(raw: unknown): AppData {
     override:
       ov && Number(ov.block) >= 1 && Number(ov.week) >= 1 ? { block: Math.round(Number(ov.block)), week: Math.round(Number(ov.week)) } : null,
     sessionLength: s.sessionLength === 60 ? 60 : 30,
-    guided: s.guided !== false,
-    dadPhone: typeof s.dadPhone === 'string' ? s.dadPhone : '',
+    sessionMinutes: Number(s.sessionMinutes) >= 5 ? Math.min(720, Math.round(Number(s.sessionMinutes))) : null,
+    guided: s.guided === true,
+    activityLog: s.activityLog !== false,
     theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : 'system',
     ladderPasses: Math.min(20, Math.max(1, Math.round(Number(s.ladderPasses) || 4))),
   }
@@ -262,6 +286,9 @@ export function normalize(raw: unknown): AppData {
         guideAt: typeof v.guideAt === 'string' ? v.guideAt : null,
       }
     }
+  }
+  if (Array.isArray(raw.events)) {
+    d.events = raw.events.filter((e): e is AppEvent => isObj(e) && typeof e.t === 'string' && typeof e.type === 'string').slice(-3000)
   }
   if (isObj(raw.songs)) {
     for (const [k, v] of Object.entries(raw.songs)) {
@@ -314,7 +341,14 @@ export function normalize(raw: unknown): AppData {
       dismissedPrompt: !!a.dismissedPrompt,
     }
   }
-  if (isObj(raw.plan) && Array.isArray(raw.plan.blocks) && raw.plan.blocks.length) d.plan = raw.plan as unknown as GeneratedPlan
+  if (isObj(raw.plan) && Array.isArray(raw.plan.blocks) && raw.plan.blocks.length) {
+    d.plan = raw.plan as unknown as GeneratedPlan
+    // Plans made before v0.5.5 don't carry their modules; rebuild them from the blocks so songs and genre can still be changed.
+    if (d.plan.resultId === 'ai-result' && !Array.isArray(d.plan.modules)) {
+      const modules = d.plan.blocks.map(moduleFromBlock).filter((m): m is AiModule => !!m)
+      if (modules.length) d.plan = { ...d.plan, modules, sessionMinutes: d.plan.sessionMinutes ?? d.plan.blocks[0]?.weekParts?.[0]?.reduce((t, p) => t + (p.minutes?.[60] ?? 0), 0) }
+    }
+  }
   if (isObj(raw.previousPlan) && isValidKey(raw.previousPlan.planStart)) {
     const pp = raw.previousPlan
     d.previousPlan = {
@@ -372,6 +406,7 @@ export function normalize(raw: unknown): AppData {
       startedAt: running && Number(r.startedAt) > 0 ? Number(r.startedAt) : null,
       done: normParts(r.done),
       note: typeof r.note === 'string' ? r.note : '',
+      tempo: isObj(r.tempo) ? (Object.fromEntries(PART_IDS.filter((p) => Number((r.tempo as Record<string, unknown>)[p]) >= 30).map((p) => [p, Math.round(Number((r.tempo as Record<string, unknown>)[p]))])) as Partial<Record<PartId, number>>) : undefined,
     }
   }
   return d

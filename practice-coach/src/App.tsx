@@ -21,6 +21,8 @@ import { AiResults } from './screens/AiResults'
 import { BuildPlan } from './screens/BuildPlan'
 import { EarGuide } from './screens/EarGuide'
 import { SongPage } from './screens/SongPage'
+import { ExercisePage } from './screens/practice/ExercisePage'
+import { installPageTracking, trackPage } from './lib/events'
 import { applyUpdate } from './lib/sw'
 
 export function App() {
@@ -46,7 +48,9 @@ export function App() {
   // Scroll to top on route change (but not on query-only changes within the Lab).
   useEffect(() => {
     window.scrollTo(0, 0)
+    trackPage(route.path)
   }, [route.path])
+  useEffect(() => installPageTracking(), [])
 
   const [first, second] = route.segments
   let screen
@@ -55,7 +59,7 @@ export function App() {
       screen = <Home />
       break
     case 'practice':
-      screen = <Today />
+      screen = second === 'exercise' && route.segments[2] ? <ExercisePage partId={route.segments[2]} query={route.query} /> : <Today query={route.query} />
       break
     case 'progress':
       screen = <Progress />

@@ -1988,3 +1988,50 @@ table.skeleton td {
     justify-self: start;
   }
 }
+
+/* ---------------- practice list + exercise page ---------------- */
+.start-btn {
+  justify-content: center;
+  min-height: 56px;
+  font-size: 1.05rem;
+}
+.length-editor {
+  display: grid;
+  gap: 8px;
+}
+.exercise-lab {
+  width: 100%;
+  height: 560px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+}
+@media (max-width: 720px) {
+  .exercise-lab {
+    height: 520px;
+  }
+}
+.exercise-tool .chips {
+  margin-bottom: 8px;
+}
+.chip.goal {
+  border-color: var(--accent);
+}
+.log-rows {
+  display: grid;
+  gap: 6px;
+}
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.log-row:last-child {
+  border-bottom: 0;
+}
+.log-row.done strong {
+  color: var(--accent);
+}

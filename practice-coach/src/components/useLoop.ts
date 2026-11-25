@@ -4,6 +4,7 @@
  */
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { toast } from './Toast'
+import { logEvent } from '../lib/events'
 
 export const SPEEDS = [0.25, 0.5, 0.75, 1]
 export const r1 = (t: number) => Math.round(t * 10) / 10
@@ -79,6 +80,7 @@ export function useLoop(playerRef: RefObject<YT.Player | null>, ready: boolean, 
     if (!st.ladder) return
     let { idx, pass } = st.ladder
     pass += 1
+    logEvent('ladder', { speed: SPEEDS[idx], pass })
     if (pass >= st.passes) {
       idx += 1
       pass = 0
@@ -133,6 +135,7 @@ export function useLoop(playerRef: RefObject<YT.Player | null>, ready: boolean, 
       return true
     },
     playLoop: (aa: number, bb: number) => {
+      logEvent('loop', { a: r1(aa), b: r1(bb) })
       const p = player()
       setA(r1(aa))
       setB(r1(bb))

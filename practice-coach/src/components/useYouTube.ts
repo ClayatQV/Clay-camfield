@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadYouTubeApi } from '../lib/youtube'
+import { logEvent } from '../lib/events'
 
 export type YtStatus = 'loading' | 'ready' | 'error'
 
@@ -43,6 +44,8 @@ export function useYouTube(videoId: string) {
             },
             onStateChange: (e) => {
               if (cancelled) return
+              if (e.data === 1) logEvent('video', { id: videoRef.current, state: 'play' })
+              if (e.data === 2) logEvent('video', { id: videoRef.current, state: 'pause' })
               setPlaying(e.data === 1 || e.data === 3)
               if (e.data === 0) setEnded((n) => n + 1)
             },

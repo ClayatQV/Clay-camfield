@@ -809,7 +809,7 @@ function renderTech(){
 
 /* ================= global wiring ================= */
 var bpm=$("bpm");bpm.value=state.bpm;
-function setBpm(v){v=Math.max(30,Math.min(240,Math.round(+v)||60));state.bpm=v;bpm.value=v;save();}
+function setBpm(v){v=Math.max(30,Math.min(240,Math.round(+v)||60));state.bpm=v;bpm.value=v;save();if(typeof tellParent==="function")tellParent("bpm");}
 bpm.addEventListener("change",function(){setBpm(bpm.value);});
 $("bpm-dn").addEventListener("click",function(){setBpm(state.bpm-5);});$("bpm-up").addEventListener("click",function(){setBpm(state.bpm+5);});
 var labs=$("labels");labs.value=state.label;
@@ -820,7 +820,7 @@ $("click-btn").addEventListener("click",function(){var p=$("click-set");p.hidden
 $("click-test").addEventListener("click",function(){try{metro.ctx=metro.ctx||new (window.AudioContext||window.webkitAudioContext)();if(metro.ctx.resume)metro.ctx.resume();
   var t=metro.ctx.currentTime+.05,spt=60/state.bpm;for(var i=0;i<4;i++)metroClick(t+i*spt,i===0?2:1);}catch(e){}});
 /* Practice Coach: report the active mode and practice activity to the app (for time stats) */
-function tellParent(type){try{if(window.parent!==window)window.parent.postMessage({source:"fretboard-lab",type:type,mode:state.mode,metro:metro.on},location.origin);}catch(e){}}
+function tellParent(type){try{if(window.parent!==window)window.parent.postMessage({source:"fretboard-lab",type:type,mode:state.mode,metro:metro.on,bpm:state.bpm},location.origin);}catch(e){}}
 var lastPing=0;function ping(){var n=Date.now();if(n-lastPing>5000){lastPing=n;tellParent("active");}}
 document.addEventListener("pointerdown",ping,true);document.addEventListener("keydown",ping,true);
 setInterval(function(){if(metro.on)tellParent("active");},10000);labs.addEventListener("change",function(){state.label=labs.value;save();renderAll();});

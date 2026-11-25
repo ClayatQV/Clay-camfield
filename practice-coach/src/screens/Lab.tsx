@@ -1,9 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { Icon } from '../components/Icon'
-import { todayKey } from '../lib/dates'
-import { addLabTime } from '../store/actions'
-import { LAB_MODES, type LabMode } from '../store/store'
 import { labFileUrl } from '../lib/lab'
+import { useLabTimer } from '../lib/labTimer'
 import { effectiveTheme } from '../lib/theme'
 import { useData } from '../store/store'
 
@@ -55,53 +53,4 @@ export function Lab({ query }: { query: URLSearchParams }) {
       <iframe ref={frameRef} key={src} className="lab-frame" src={src} title="Fretboard Lab" />
     </div>
   )
-}
-
-/**
- * Counts active practice time in the Lab, per mode, for the stats page.
- * Time counts while the page is visible and you touched the Lab or ran its
- * click within the last 90 seconds. Saved every 30 s and when you leave.
- */
-const IDLE_MS = 90_000
-
-function useLabTimer(frameRef: React.RefObject<HTMLIFrameElement | null>) {
-  const st = useRef({ mode: null as LabMode | null, lastActive: 0, pending: 0, lastTick: Date.now() })
-
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      if (e.origin !== location.origin || e.source !== frameRef.current?.contentWindow) return
-      const d = e.data as { source?: string; type?: string; mode?: string }
-      if (d?.source !== 'fretboard-lab') return
-      if (LAB_MODES.includes(d.mode as LabMode)) {
-        if (st.current.mode !== d.mode) flush()
-        st.current.mode = d.mode as LabMode
-      }
-      if (d.type === 'active') st.current.lastActive = Date.now()
-    }
-    const tick = () => {
-      const s = st.current
-      const now = Date.now()
-      const dt = (now - s.lastTick) / 1000
-      s.lastTick = now
-      if (document.visibilityState === 'visible' && now - s.lastActive < IDLE_MS && dt < 5) s.pending += dt
-    }
-    const flush = () => {
-      tick()
-      const s = st.current
-      if (s.mode && s.pending >= 1) addLabTime(todayKey(), s.mode, s.pending)
-      s.pending = 0
-    }
-    window.addEventListener('message', onMsg)
-    const t1 = setInterval(tick, 1000)
-    const t2 = setInterval(flush, 30_000)
-    const onHide = () => document.visibilityState === 'hidden' && flush()
-    document.addEventListener('visibilitychange', onHide)
-    return () => {
-      flush()
-      window.removeEventListener('message', onMsg)
-      clearInterval(t1)
-      clearInterval(t2)
-      document.removeEventListener('visibilitychange', onHide)
-    }
-  }, [frameRef])
 }

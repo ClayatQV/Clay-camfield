@@ -207,18 +207,8 @@ function ApplicationTool({ part, moduleId }: { part: SessionPart; moduleId: stri
   const [sel, setSel] = useState(0)
   const [override, setOverride] = useState<{ title: string; artist: string } | null>(null)
   const current = override ?? (options[sel] ? parse(options[sel]) : null)
-  if (!current) {
-    return (
-      <section className="card">
-        <p className="muted">{part.instruction}</p>
-        {part.lessonId && (
-          <a className="btn primary" href={href(`/lessons/${part.lessonId}`)}>
-            Open the lesson
-          </a>
-        )}
-      </section>
-    )
-  }
+  // No song choices (the original plan's lesson-based weeks): the lesson link below the timer is the tool.
+  if (!current) return null
   return (
     <section className="card exercise-tool">
       {options.length > 1 && (

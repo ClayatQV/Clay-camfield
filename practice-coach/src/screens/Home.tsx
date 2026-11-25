@@ -106,7 +106,6 @@ export function Home() {
               {block.towards ? ` · toward “${block.towards}”` : ''}
             </span>
             <h2>{block.title}</h2>
-            {block.why && <p className="why">Why: {block.why}</p>}
             <ul className="today-parts">
               {parts.map((p) => (
                 <li key={p.id} className={draft?.done[p.id] ? 'done' : ''}>

@@ -8,6 +8,7 @@ import { todayKey } from '../lib/dates'
 import { planFromModules } from '../plan/fromModules'
 import { getSongs } from './client'
 import { getData, songKey, update, type AiInterview, type AppData } from '../store/store'
+import { logEvent } from '../lib/events'
 
 export const BLOCK_ORDER: BlockId[] = ['skills', 'taste', 'vision']
 /** Mirrors BLOCK_BUDGET on the server (api/_lib/prompts.ts). */
@@ -198,6 +199,7 @@ export async function rerollSong(moduleId: string, title: string): Promise<AiSon
   songs.splice(Math.max(0, idx), 0, fresh)
   update((x) => (x.ai.build ? { ...x, ai: { ...x.ai, build: { ...x.ai.build, rejected: { ...x.ai.build.rejected, [moduleId]: rejected } } } } : x))
   replaceModule({ ...m, application: { ...m.application, songs } })
+  logEvent('song-reroll', { module: moduleId, from: title, to: fresh.title })
   return fresh
 }
 
@@ -211,6 +213,7 @@ export function setModuleListening(moduleId: string, listening: string[]) {
 
 export function setSongVideo(title: string, artist: string, v: { id: string; title: string | null; channel: string | null } | null) {
   const key = songKey(title, artist)
+  logEvent(v ? 'video-pick' : 'video-reject', { song: title, id: v?.id ?? getData().songs[key]?.youtubeId ?? null })
   update((x) => {
     const cur = x.songs[key] ?? { title, artist, youtubeId: null, videoTitle: null, channel: null, rejected: [], sections: [], chosenAt: null }
     const rejected = v === null && cur.youtubeId ? [...new Set([...cur.rejected, cur.youtubeId])] : cur.rejected

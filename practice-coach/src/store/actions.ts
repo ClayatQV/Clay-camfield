@@ -3,6 +3,7 @@ import type { PartId } from '../content/types'
 import { PART_IDS } from '../content/types'
 import { todayKey, type DayKey } from '../lib/dates'
 import { emptyParts, getData, update, zeroElapsed, type Draft, type LabMode, type LengthMode, type Session } from './store'
+import { logEvent } from '../lib/events'
 
 export function newDraft(date: DayKey, lengthMode: LengthMode): Draft {
   return { date, lengthMode, elapsed: zeroElapsed(), running: null, startedAt: null, done: emptyParts(), note: '' }
@@ -42,10 +43,22 @@ function withDraft(today: DayKey, fn: (d: Draft) => Draft) {
 
 export function startPart(today: DayKey, p: PartId) {
   withDraft(today, (d) => ({ ...settle(d), running: p, startedAt: Date.now() }))
+  logEvent('timer-start', { part: p })
+}
+
+export function setPartTempo(today: DayKey, p: PartId, bpm: number | null) {
+  withDraft(today, (d) => {
+    const tempo = { ...(d.tempo ?? {}) }
+    if (bpm && bpm >= 30 && bpm <= 240) tempo[p] = Math.round(bpm)
+    else delete tempo[p]
+    return { ...d, tempo }
+  })
+  if (bpm) logEvent('tempo', { part: p, bpm: Math.round(bpm) })
 }
 
 export function pauseAll(today: DayKey) {
   withDraft(today, (d) => settle(d))
+  logEvent('timer-pause')
 }
 
 export function toggleDone(today: DayKey, p: PartId) {
@@ -79,6 +92,7 @@ export function finishSession(input: {
   note: string
   parts: Record<PartId, boolean>
   partLabels: string[]
+  partDetails?: Session['partDetails']
   block: number
   week: number
 }): Session {
@@ -95,9 +109,11 @@ export function finishSession(input: {
     week: input.week,
     partLabels: input.partLabels,
     partSeconds: Object.fromEntries(PART_IDS.map((p) => [p, Math.round(d.elapsed[p])])) as Record<PartId, number>,
+    partDetails: input.partDetails,
     finishedAt: new Date().toISOString(),
   }
   update((x) => ({ ...x, sessions: [...x.sessions, session], draft: null }))
+  logEvent('session-logged', { minutes: session.minutes, parts: input.partDetails?.map((p) => p.label) })
   return session
 }
 
@@ -107,6 +123,7 @@ export function deleteSession(id: string) {
 
 /** Add active Lab seconds to a day (called by the Lab screen in small batches). */
 export function addLabTime(date: DayKey, mode: LabMode, seconds: number) {
+  logEvent('lab', { mode, seconds: Math.round(seconds) })
   if (seconds < 1) return
   update((x) => {
     const day = { ...(x.labTime[date] ?? {}) }
